@@ -1,12 +1,32 @@
 @import "tailwindcss";
 
-:root {
+:root,
+[data-theme="light"] {
   --color-soil: #3d2c1e;
   --color-moss: #4a6b4a;
   --color-leaf: #6b8f6b;
   --color-trail: #c4a574;
   --color-mist: #f3f0e8;
   --color-bark: #2a2118;
+  --color-panel: rgba(255, 255, 255, 0.7);
+  --color-input: #ffffff;
+  --color-page-a: rgba(107, 143, 107, 0.18);
+  --color-page-b: rgba(196, 165, 116, 0.22);
+  --color-page: #f3f0e8;
+}
+
+[data-theme="dark"] {
+  --color-soil: #e8dcc8;
+  --color-moss: #8fb38f;
+  --color-leaf: #6b8f6b;
+  --color-trail: #7a6548;
+  --color-mist: #2a3228;
+  --color-bark: #e6e0d4;
+  --color-panel: rgba(28, 34, 28, 0.85);
+  --color-input: #1c221c;
+  --color-page-a: rgba(107, 143, 107, 0.12);
+  --color-page-b: rgba(122, 101, 72, 0.18);
+  --color-page: #141814;
 }
 
 html,
@@ -20,7 +40,8 @@ body {
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   color: var(--color-bark);
   background:
-    radial-gradient(ellipse at top left, rgba(107, 143, 107, 0.18), transparent 45%),
-    radial-gradient(ellipse at bottom right, rgba(196, 165, 116, 0.22), transparent 50%),
-    var(--color-mist);
+    radial-gradient(ellipse at top left, var(--color-page-a), transparent 45%),
+    radial-gradient(ellipse at bottom right, var(--color-page-b), transparent 50%),
+    var(--color-page);
+  transition: background 200ms ease, color 200ms ease;
 }

@@ -79,7 +79,7 @@ export function DogProfileForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-3 rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-[var(--color-trail)]/40"
+      className="space-y-3 rounded-2xl bg-[var(--color-panel)] p-5 shadow-sm ring-1 ring-[var(--color-trail)]/40"
     >
       <h2 className="text-lg font-medium text-[var(--color-soil)]">
         Dog profile
@@ -115,7 +115,7 @@ export function DogProfileForm({
       <label className="block text-sm">
         Name
         <input
-          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
+          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
           {...register("name", {
             required: "Name is required",
             validate: (v) => v.trim().length > 0 || "Name is required",
@@ -131,7 +131,7 @@ export function DogProfileForm({
       <label className="block text-sm">
         Breed (optional)
         <input
-          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
+          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
           {...register("breed")}
           placeholder="e.g. Labrador"
         />
@@ -143,7 +143,7 @@ export function DogProfileForm({
           type="number"
           step={0.1}
           min={0}
-          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
+          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
           {...register("weight_kg", {
             validate: (v) => {
               if (!v.trim()) return true;

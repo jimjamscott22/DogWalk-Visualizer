@@ -3,10 +3,24 @@ import type {
   CreateDogInput,
   CreateWalkInput,
   Dog,
+  Goal,
   UpdateDogInput,
   UpdateWalkInput,
   Walk,
 } from "../types";
+
+export interface BackupPayload {
+  exported_at: string;
+  dogs: Dog[];
+  walks: Walk[];
+  goals: Goal[];
+}
+
+export interface UpsertGoalInput {
+  dog_id: number;
+  target_distance_weekly?: number | null;
+  target_walks_per_week?: number | null;
+}
 
 const DB_PATH = "sqlite:dogwalk.db";
 
@@ -101,6 +115,66 @@ export async function updateWalk(input: UpdateWalkInput): Promise<void> {
 export async function deleteWalk(id: number): Promise<void> {
   const db = await getDb();
   await db.execute("DELETE FROM walks WHERE id = $1", [id]);
+}
+
+export async function getGoalForDog(dogId: number): Promise<Goal | null> {
+  const db = await getDb();
+  const rows = await db.select<Goal[]>(
+    "SELECT * FROM goals WHERE dog_id = $1 ORDER BY updated_at DESC, id DESC LIMIT 1",
+    [dogId],
+  );
+  return rows[0] ?? null;
+}
+
+export async function listGoals(): Promise<Goal[]> {
+  const db = await getDb();
+  return db.select<Goal[]>("SELECT * FROM goals ORDER BY id ASC");
+}
+
+export async function upsertGoal(input: UpsertGoalInput): Promise<void> {
+  const db = await getDb();
+  const existing = await getGoalForDog(input.dog_id);
+  const distance = input.target_distance_weekly ?? null;
+  const walks = input.target_walks_per_week ?? null;
+
+  if (existing) {
+    await db.execute(
+      `UPDATE goals
+       SET target_distance_weekly = $1,
+           target_walks_per_week = $2,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3`,
+      [distance, walks, existing.id],
+    );
+    return;
+  }
+
+  await db.execute(
+    `INSERT INTO goals (dog_id, target_distance_weekly, target_walks_per_week)
+     VALUES ($1, $2, $3)`,
+    [input.dog_id, distance, walks],
+  );
+}
+
+export async function exportBackup(): Promise<BackupPayload> {
+  const [dogs, walks, goals] = await Promise.all([
+    listDogs(),
+    listWalks(),
+    listGoals(),
+  ]);
+  return {
+    exported_at: new Date().toISOString(),
+    dogs,
+    walks,
+    goals,
+  };
+}
+
+export async function clearAllData(): Promise<void> {
+  const db = await getDb();
+  await db.execute("DELETE FROM walks");
+  await db.execute("DELETE FROM goals");
+  await db.execute("DELETE FROM dogs");
 }
 
 /** Smoke-test helper: ensure DB opens and schema is queryable. */

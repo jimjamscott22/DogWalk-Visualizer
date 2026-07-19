@@ -65,4 +65,5 @@ export interface DailyStats {
   total_walks_week: number;
   total_distance_week: number;
   streak_days: number;
+  avg_distance_week: number;
 }

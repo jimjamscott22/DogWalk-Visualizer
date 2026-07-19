@@ -118,7 +118,7 @@ export function WalkForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-3 rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-[var(--color-trail)]/40"
+      className="space-y-3 rounded-2xl bg-[var(--color-panel)] p-5 shadow-sm ring-1 ring-[var(--color-trail)]/40"
     >
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-lg font-medium text-[var(--color-soil)]">
@@ -139,7 +139,7 @@ export function WalkForm({
         Date
         <input
           type="date"
-          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
+          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
           {...register("date", { required: "Date is required" })}
         />
         {errors.date && (
@@ -154,7 +154,7 @@ export function WalkForm({
         <input
           type="number"
           min={1}
-          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
+          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
           {...register("duration_minutes", {
             validate: (v) => {
               if (!v.trim()) return true;
@@ -179,7 +179,7 @@ export function WalkForm({
           type="number"
           min={0.1}
           step={0.1}
-          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
+          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
           {...register("distance_km", {
             required: "Distance is required",
             validate: (v) => {
@@ -201,7 +201,7 @@ export function WalkForm({
       <label className="block text-sm">
         Notes
         <input
-          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-white px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
+          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
           {...register("notes")}
           placeholder="Optional"
         />

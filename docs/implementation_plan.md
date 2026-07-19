@@ -50,19 +50,20 @@ The application will be a **Local-First Desktop App**. This approach ensures dat
     *   *Deliverable:* User can create a profile, log a walk, and see the data appear on a chart immediately.
     *   *Handoff:* See `docs/HANDOFF.md`.
 
-### Phase 3: UI Polish & Health Integration (Week 3)
+### Phase 3: UI Polish & Health Integration (Week 3) — **HANDOFF SLICE A COMPLETE (2026-07-19)**
 **Objective:** Refine UX to focus on "Routine" and "Health" aspects of the prompt.
 
-| Task ID | Task Description | Tech/Dependencies | Est. Effort |
-| :--- | :--- | :--- | :--- |
-| **3.1** | Dashboard Layout: Main view showing weekly progress. | Tailwind + Shadcn | 6h |
-| **3.2** | Health Insights: Display average steps vs. weight (if tracked). | JS Calculation | 4h |
-| **3.3** | Settings Page: Toggle Dark Mode, Backup Data to JSON. | Tauri Dialogs | 4h |
-| **3.4** | Error Handling & Empty States: "No walks yet" screens. | React Context | 2h |
-| **3.5** | Responsive Check: Ensure UI scales well on different monitor sizes. | DevTools | 2h |
+| Task ID | Task Description | Tech/Dependencies | Est. Effort | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **3.1** | Dashboard Layout: Main view showing weekly progress. | Tailwind + Shadcn | 6h | Partial |
+| **3.2** | Health Insights: Display average steps vs. weight (if tracked). | JS Calculation | 4h | Done |
+| **3.3** | Settings Page: Toggle Dark Mode, Backup Data to JSON. | Tauri Dialogs | 4h | Done |
+| **3.4** | Error Handling & Empty States: "No walks yet" screens. | React Context | 2h | Done |
+| **3.5** | Responsive Check: Ensure UI scales well on different monitor sizes. | DevTools | 2h | Partial |
 
-*   **Milestone:** **Functional MVP.**
-    *   *Deliverable:* The application looks finished, handles data gracefully, and allows a user to track habits effectively.
+*   **Milestone:** **Functional MVP** (slice A delivered; 3.1/3.5 polish remaining).
+    *   *Deliverable:* Settings + onboarding empties + goals/health insights wired.
+    *   *Handoff:* See `docs/HANDOFF.md`.
 
 ### Phase 4: Testing, Packaging & Release (Week 4)
 **Objective:** Hardening the product for distribution.

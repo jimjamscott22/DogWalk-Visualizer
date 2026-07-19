@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { DailyStats, Dog, Walk } from "../types";
+import type { DailyStats, Dog, Goal, Walk } from "../types";
 import * as db from "../lib/db";
 import { getDailyStats } from "../lib/stats";
 
@@ -8,6 +8,7 @@ interface AppState {
   error: string | null;
   dogs: Dog[];
   walks: Walk[];
+  goal: Goal | null;
   selectedDogId: number | null;
   isCreatingDog: boolean;
   stats: DailyStats;
@@ -41,12 +42,19 @@ interface AppState {
     notes?: string;
   }) => Promise<void>;
   removeWalk: (id: number) => Promise<void>;
+  saveGoal: (input: {
+    dog_id: number;
+    target_distance_weekly?: number | null;
+    target_walks_per_week?: number | null;
+  }) => Promise<void>;
+  clearAllData: () => Promise<void>;
 }
 
 const emptyStats: DailyStats = {
   total_walks_week: 0,
   total_distance_week: 0,
   streak_days: 0,
+  avg_distance_week: 0,
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -54,6 +62,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   error: null,
   dogs: [],
   walks: [],
+  goal: null,
   selectedDogId: null,
   isCreatingDog: false,
   stats: emptyStats,
@@ -90,10 +99,13 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     const walks =
       selectedDogId != null ? await db.listWalks(selectedDogId) : [];
+    const goal =
+      selectedDogId != null ? await db.getGoalForDog(selectedDogId) : null;
 
     set({
       dogs,
       walks,
+      goal,
       selectedDogId,
       isCreatingDog,
       stats: getDailyStats(walks),
@@ -110,6 +122,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       isCreatingDog: true,
       selectedDogId: null,
       walks: [],
+      goal: null,
       stats: emptyStats,
     });
   },
@@ -147,6 +160,23 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   removeWalk: async (id) => {
     await db.deleteWalk(id);
+    await get().refresh();
+  },
+
+  saveGoal: async (input) => {
+    await db.upsertGoal(input);
+    await get().refresh();
+  },
+
+  clearAllData: async () => {
+    await db.clearAllData();
+    set({
+      selectedDogId: null,
+      isCreatingDog: false,
+      walks: [],
+      goal: null,
+      stats: emptyStats,
+    });
     await get().refresh();
   },
 }));

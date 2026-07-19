@@ -8,7 +8,7 @@ interface StatsPanelProps {
 export function StatsPanel({ stats, dogName }: StatsPanelProps) {
   return (
     <section className="grid gap-3 sm:grid-cols-3">
-      <article className="rounded-2xl bg-white/70 p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40">
+      <article className="rounded-2xl bg-[var(--color-panel)] p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40">
         <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-moss)]">
           Streak
         </p>
@@ -22,7 +22,7 @@ export function StatsPanel({ stats, dogName }: StatsPanelProps) {
           {dogName ? `${dogName}'s consecutive walk days` : "Add a dog to track streaks"}
         </p>
       </article>
-      <article className="rounded-2xl bg-white/70 p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40">
+      <article className="rounded-2xl bg-[var(--color-panel)] p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40">
         <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-moss)]">
           This week
         </p>
@@ -34,7 +34,7 @@ export function StatsPanel({ stats, dogName }: StatsPanelProps) {
         </p>
         <p className="mt-1 text-xs text-[var(--color-bark)]/60">Mon–today count</p>
       </article>
-      <article className="rounded-2xl bg-white/70 p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40">
+      <article className="rounded-2xl bg-[var(--color-panel)] p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40">
         <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-moss)]">
           Distance
         </p>

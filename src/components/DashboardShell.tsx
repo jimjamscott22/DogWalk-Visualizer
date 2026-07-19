@@ -3,6 +3,8 @@ import { useAppStore } from "../store/appStore";
 import { buildDistanceSeries } from "../lib/stats";
 import type { Walk } from "../types";
 import { DogProfileForm } from "./DogProfileForm";
+import { HealthInsights } from "./HealthInsights";
+import { SettingsPanel } from "./SettingsPanel";
 import { StatsPanel } from "./StatsPanel";
 import { WalkChart } from "./WalkChart";
 import { WalkForm } from "./WalkForm";
@@ -13,7 +15,9 @@ export function DashboardShell() {
     error,
     dogs,
     walks,
+    goal,
     selectedDogId,
+    isCreatingDog,
     stats,
     selectDog,
     startCreateDog,
@@ -22,6 +26,8 @@ export function DashboardShell() {
     addWalk,
     updateWalk,
     removeWalk,
+    saveGoal,
+    clearAllData,
   } = useAppStore();
 
   const [status, setStatus] = useState<string | null>(null);
@@ -33,13 +39,19 @@ export function DashboardShell() {
       : null;
 
   const chartData = useMemo(() => buildDistanceSeries(walks, 14), [walks]);
+  const needsOnboarding = ready && dogs.length === 0;
 
   if (error) {
     return (
-      <div className="mx-auto flex min-h-full max-w-3xl items-center justify-center p-8">
-        <div className="rounded-xl border border-red-200 bg-white/80 p-6 shadow-sm">
+      <div className="mx-auto flex min-h-full max-w-3xl items-center justify-center p-6 sm:p-8">
+        <div className="rounded-xl border border-red-200 bg-[var(--color-panel)] p-6 shadow-sm">
           <h1 className="text-xl font-semibold text-red-800">Database error</h1>
           <p className="mt-2 text-sm text-red-700">{error}</p>
+          <p className="mt-3 text-sm text-[var(--color-bark)]/70">
+            Try restarting the app. If this persists, use Clear all data from
+            Settings after the database loads, or reinstall while keeping a JSON
+            backup if you have one.
+          </p>
         </div>
       </div>
     );
@@ -53,16 +65,54 @@ export function DashboardShell() {
     );
   }
 
+  if (needsOnboarding) {
+    return (
+      <div className="mx-auto flex min-h-full max-w-lg flex-col justify-center gap-6 p-6 sm:p-8">
+        <header className="space-y-2 text-center sm:text-left">
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[var(--color-moss)]">
+            Dog Walk Tracker
+          </p>
+          <h1 className="text-3xl font-semibold text-[var(--color-soil)]">
+            Meet your pack
+          </h1>
+          <p className="text-[var(--color-bark)]/80">
+            Add your first dog to start logging walks. Everything stays on this
+            computer — no accounts, no cloud.
+          </p>
+          {status && (
+            <p className="text-sm text-[var(--color-moss)]" role="status">
+              {status}
+            </p>
+          )}
+        </header>
+        <DogProfileForm
+          dogs={dogs}
+          selectedDog={null}
+          onSelect={selectDog}
+          onStartCreate={startCreateDog}
+          onAdd={async (values) => {
+            await addDog(values);
+          }}
+          onUpdate={async (values) => {
+            await updateDog(values);
+          }}
+          onStatus={setStatus}
+        />
+        <SettingsPanel onClearAll={clearAllData} onStatus={setStatus} />
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto flex min-h-full max-w-5xl flex-col gap-8 p-8">
+    <div className="mx-auto flex min-h-full max-w-5xl flex-col gap-6 p-4 sm:gap-8 sm:p-8">
       <header className="space-y-2">
         <p className="text-sm font-medium uppercase tracking-[0.18em] text-[var(--color-moss)]">
           Dog Walk Tracker
         </p>
-        <h1 className="text-3xl font-semibold text-[var(--color-soil)]">
+        <h1 className="text-2xl font-semibold text-[var(--color-soil)] sm:text-3xl">
           Today&apos;s trail
         </h1>
-        <p className="max-w-xl text-[var(--color-bark)]/80">
+        <p className="max-w-xl text-sm text-[var(--color-bark)]/80 sm:text-base">
           Local-first walk logging. Your data stays on this machine — nothing is
           sent to external servers.
         </p>
@@ -75,17 +125,36 @@ export function DashboardShell() {
 
       <StatsPanel stats={stats} dogName={selectedDog?.name ?? null} />
 
-      <section className="rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-[var(--color-trail)]/40">
+      <HealthInsights
+        dogId={selectedDogId}
+        dogName={selectedDog?.name ?? null}
+        weightKg={selectedDog?.weight_kg ?? null}
+        goal={goal}
+        stats={stats}
+        onSave={saveGoal}
+        onStatus={setStatus}
+      />
+
+      <section className="rounded-2xl bg-[var(--color-panel)] p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40 sm:p-5">
         <h2 className="mb-3 text-lg font-medium text-[var(--color-soil)]">
           Distance (last 14 days)
         </h2>
-        <WalkChart data={chartData} />
+        {walks.length === 0 ? (
+          <div className="rounded-xl bg-[var(--color-mist)]/60 px-4 py-8 text-center">
+            <p className="font-medium text-[var(--color-soil)]">No walks yet</p>
+            <p className="mt-1 text-sm text-[var(--color-bark)]/70">
+              Log your first walk below to start the streak and chart.
+            </p>
+          </div>
+        ) : (
+          <WalkChart data={chartData} />
+        )}
       </section>
 
-      <section className="grid gap-6 md:grid-cols-2">
+      <section className="grid gap-6 lg:grid-cols-2">
         <DogProfileForm
           dogs={dogs}
-          selectedDog={selectedDog}
+          selectedDog={isCreatingDog ? null : selectedDog}
           onSelect={(id) => {
             selectDog(id);
             setEditingWalk(null);
@@ -117,12 +186,20 @@ export function DashboardShell() {
         />
       </section>
 
-      <section className="rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-[var(--color-trail)]/40">
+      <section className="rounded-2xl bg-[var(--color-panel)] p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40 sm:p-5">
         <h2 className="mb-3 text-lg font-medium text-[var(--color-soil)]">
           Walk history
         </h2>
         {walks.length === 0 ? (
-          <p className="text-sm text-[var(--color-bark)]/60">No walks yet</p>
+          <div className="rounded-xl bg-[var(--color-mist)]/60 px-4 py-8 text-center">
+            <p className="font-medium text-[var(--color-soil)]">
+              Trail is empty
+            </p>
+            <p className="mt-1 text-sm text-[var(--color-bark)]/70">
+              Use Add walk to record today&apos;s outing for{" "}
+              {selectedDog?.name ?? "your dog"}.
+            </p>
+          </div>
         ) : (
           <ul className="divide-y divide-[var(--color-trail)]/30">
             {walks.map((walk) => (
@@ -164,6 +241,8 @@ export function DashboardShell() {
           </ul>
         )}
       </section>
+
+      <SettingsPanel onClearAll={clearAllData} onStatus={setStatus} />
     </div>
   );
 }
