@@ -29,25 +29,6 @@ function parseOptionalPositive(raw: string): number | null | undefined {
   return n;
 }
 
-function ProgressBar({ label, value }: { label: string; value: number | null }) {
-  if (value == null) return null;
-  const pct = Math.round(value * 100);
-  return (
-    <div>
-      <div className="mb-1 flex justify-between text-xs text-[var(--color-bark)]/70">
-        <span>{label}</span>
-        <span>{pct}%</span>
-      </div>
-      <div className="h-2 overflow-hidden rounded-full bg-[var(--color-mist)]">
-        <div
-          className="h-full rounded-full bg-[var(--color-moss)] transition-[width] duration-300"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
 export function HealthInsights({
   dogId,
   dogName,
@@ -105,40 +86,39 @@ export function HealthInsights({
 
   if (dogId == null) {
     return (
-      <section className="rounded-2xl bg-[var(--color-panel)] p-5 shadow-sm ring-1 ring-[var(--color-trail)]/40">
+      <section className="rounded-2xl bg-[var(--color-panel)] p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40 sm:p-5">
         <h2 className="text-lg font-medium text-[var(--color-soil)]">
-          Health insights
+          Weekly goals
         </h2>
         <p className="mt-2 text-sm text-[var(--color-bark)]/60">
-          Add a dog to set weekly targets and see progress.
+          Select a dog to set weekly targets.
         </p>
       </section>
     );
   }
 
   return (
-    <section className="space-y-4 rounded-2xl bg-[var(--color-panel)] p-5 shadow-sm ring-1 ring-[var(--color-trail)]/40">
+    <section className="space-y-4 rounded-2xl bg-[var(--color-panel)] p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40 sm:p-5">
       <div>
         <h2 className="text-lg font-medium text-[var(--color-soil)]">
-          Health insights
+          Weekly goals
           {dogName ? (
             <span className="ml-2 text-sm font-normal text-[var(--color-bark)]/60">
               {dogName}
             </span>
           ) : null}
         </h2>
-        <p className="mt-2 text-sm text-[var(--color-bark)]/80">{insight.summary}</p>
+        <p className="mt-1 text-sm text-[var(--color-bark)]/70">
+          Targets feed the weekly progress bars above.
+          {insight.km_per_kg != null
+            ? ` Currently ~${insight.km_per_kg.toFixed(3)} km per kg.`
+            : weightKg == null
+              ? " Add weight on the dog profile for km-per-kg insight."
+              : ""}
+        </p>
       </div>
 
-      <div className="space-y-3">
-        <ProgressBar label="Walks vs weekly goal" value={insight.walks_progress} />
-        <ProgressBar
-          label="Distance vs weekly goal"
-          value={insight.distance_progress}
-        />
-      </div>
-
-      <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+      <form onSubmit={onSubmit} className="grid gap-3 min-[480px]:grid-cols-2">
         <label className="block text-sm">
           Target walks / week
           <input
@@ -190,7 +170,7 @@ export function HealthInsights({
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-lg bg-[var(--color-moss)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-leaf)] disabled:opacity-60 sm:col-span-2"
+          className="rounded-lg bg-[var(--color-moss)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-leaf)] disabled:opacity-60 min-[480px]:col-span-2"
         >
           Save weekly goals
         </button>

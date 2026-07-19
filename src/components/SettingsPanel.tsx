@@ -72,18 +72,18 @@ export function SettingsPanel({ onClearAll, onStatus }: SettingsPanelProps) {
   };
 
   return (
-    <section className="rounded-2xl bg-[var(--color-panel)] p-5 shadow-sm ring-1 ring-[var(--color-trail)]/40">
+    <section className="rounded-2xl bg-[var(--color-panel)] p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40 sm:p-5">
       <h2 className="text-lg font-medium text-[var(--color-soil)]">Settings</h2>
       <p className="mt-1 text-sm text-[var(--color-bark)]/70">
         Data stays on this machine. Export a JSON backup anytime.
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-3">
+      <div className="mt-4 grid gap-2 min-[420px]:grid-cols-3">
         <button
           type="button"
           disabled={busy}
           onClick={() => setTheme(toggleTheme(theme))}
-          className="rounded-lg bg-[var(--color-mist)] px-4 py-2 text-sm font-medium text-[var(--color-soil)] hover:bg-[var(--color-trail)]/30 disabled:opacity-60"
+          className="rounded-lg bg-[var(--color-mist)] px-4 py-2.5 text-sm font-medium text-[var(--color-soil)] hover:bg-[var(--color-trail)]/30 disabled:opacity-60"
         >
           {theme === "dark" ? "Use light mode" : "Use dark mode"}
         </button>
@@ -91,7 +91,7 @@ export function SettingsPanel({ onClearAll, onStatus }: SettingsPanelProps) {
           type="button"
           disabled={busy}
           onClick={() => void handleExport()}
-          className="rounded-lg bg-[var(--color-moss)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-leaf)] disabled:opacity-60"
+          className="rounded-lg bg-[var(--color-moss)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-leaf)] disabled:opacity-60"
         >
           Backup to JSON
         </button>
@@ -99,7 +99,7 @@ export function SettingsPanel({ onClearAll, onStatus }: SettingsPanelProps) {
           type="button"
           disabled={busy}
           onClick={() => void handleClear()}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-red-800 ring-1 ring-red-200 hover:bg-red-50 disabled:opacity-60"
+          className="rounded-lg px-4 py-2.5 text-sm font-medium text-red-800 ring-1 ring-red-200 hover:bg-red-50 disabled:opacity-60"
         >
           Clear all data
         </button>

@@ -44,4 +44,9 @@ body {
     radial-gradient(ellipse at bottom right, var(--color-page-b), transparent 50%),
     var(--color-page);
   transition: background 200ms ease, color 200ms ease;
+  overflow-x: hidden;
+}
+
+#root {
+  min-width: 0;
 }

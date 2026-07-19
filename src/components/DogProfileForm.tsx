@@ -85,9 +85,9 @@ export function DogProfileForm({
         Dog profile
       </h2>
 
-      <ul className="flex flex-wrap gap-2 text-sm">
+      <ul className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 text-sm">
         {dogs.map((dog) => (
-          <li key={dog.id}>
+          <li key={dog.id} className="shrink-0">
             <button
               type="button"
               onClick={() => onSelect(dog.id)}
@@ -101,7 +101,7 @@ export function DogProfileForm({
             </button>
           </li>
         ))}
-        <li>
+        <li className="shrink-0">
           <button
             type="button"
             onClick={onStartCreate}

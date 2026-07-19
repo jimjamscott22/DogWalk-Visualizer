@@ -1,8 +1,8 @@
 # Session Handoff — Dog Walk Tracker
 
 **Date:** 2026-07-19  
-**Status after this session:** Phase 1 + 2 complete; Phase 3 handoff slice (A) complete  
-**Next recommended work:** Remaining Phase 3 polish (3.1 dashboard layout refinement, 3.5 responsive pass) then Phase 4
+**Status after this session:** Phase 1–3 complete (Functional MVP)  
+**Next recommended work:** Phase 4 (tests, security audit, packaging)
 
 ---
 
@@ -29,67 +29,40 @@ Canonical docs:
 - **Zustand** — UI/app state (`src/store/appStore.ts`)
 - **react-hook-form** — dog + walk + goals forms
 - **recharts** — 14-day distance bar chart
-- **SQLite** via `@tauri-apps/plugin-sql` / `tauri-plugin-sql`
-- **Dialog / FS** — `@tauri-apps/plugin-dialog` + `@tauri-apps/plugin-fs` (JSON backup)
+- **SQLite** via `@tauri-apps/plugin-sql`
+- **Dialog / FS** — backup JSON (`plugin-dialog` + `plugin-fs`)
 
 DB file URL: `sqlite:dogwalk.db` (app data dir, not in repo).
+
+Window defaults: 1080×780, min 420×480 (`src-tauri/tauri.conf.json`).
 
 ---
 
 ## Phase completion
 
-### Phase 1 — Foundation (done)
-- Tauri + React/TS project in repo root
-- Migrations for `users`, `dogs`, `walks`, `goals`
-- Basic shell UI + Zustand + Tailwind
+### Phase 1–2 — done (see prior handoff)
 
-### Phase 2 — Core data logic (done 2026-07-18)
+### Phase 3 — complete (2026-07-19)
 | Task | Status | Notes |
 | --- | --- | --- |
-| 2.1 Walk CRUD | Done | `src/lib/db.ts` |
-| 2.2 Dog profile | Done | `DogProfileForm` |
-| 2.3 Walk form validation | Done | `WalkForm` + RHF |
-| 2.4 Visualization | Done | `StatsPanel` + `WalkChart` |
-| 2.5 Streak | Done | `src/lib/stats.ts` |
-
-### Phase 3 — UI polish & health (handoff slice A done 2026-07-19)
-| Task | Status | Notes |
-| --- | --- | --- |
-| 3.3 Settings | Done | Dark mode, JSON export via save dialog, clear-all with confirm |
-| 3.4 Empty / onboarding | Done | First-run “Meet your pack”; empty chart/history CTAs |
-| 3.2 Health / goals | Done | `goals` CRUD + `HealthInsights` progress vs weekly targets |
-| 3.1 Dashboard polish | Partial | Layout tightened; Shadcn not added |
-| 3.5 Responsive | Partial | `sm`/`lg` breakpoints + min window sizes; needs visual QA |
-
-**Architecture note:** SQL plugin from frontend; Rust owns migrations + plugin init. Dialog/fs plugins registered in `src-tauri/src/lib.rs`; capabilities include `dialog:default`, `fs:default`, `fs:allow-write-text-file`.
+| 3.1 Dashboard weekly progress | Done | Hero “This week” + walked-today + goal bars; dog switcher in header; chart + add-walk primary grid |
+| 3.2 Health / goals | Done | `HealthInsights` + km/kg note; progress in `StatsPanel` |
+| 3.3 Settings | Done | Dark mode, JSON export, clear-all |
+| 3.4 Empty / onboarding | Done | First-run + empty chart/history |
+| 3.5 Responsive | Done | Fluid padding, horizontal dog chips, history scroll, lower min window, settings grid |
 
 ---
 
 ## Key files
 
 ```
-src/
-  App.tsx                      # theme + store init
-  components/
-    DashboardShell.tsx         # onboarding vs main layout
-    DogProfileForm.tsx
-    WalkForm.tsx
-    StatsPanel.tsx
-    WalkChart.tsx
-    HealthInsights.tsx         # weekly goals + insight summary
-    SettingsPanel.tsx          # dark mode, backup, clear
-  lib/
-    db.ts                      # SQL + exportBackup / clearAllData / goals
-    stats.ts                   # streak, week stats, buildHealthInsight
-    theme.ts                   # light/dark via data-theme + localStorage
-  store/appStore.ts
-  types/index.ts
-src-tauri/src/lib.rs           # migrations + sql/dialog/fs plugins
+src/components/DashboardShell.tsx   # layout composition
+src/components/StatsPanel.tsx       # weekly progress hero
+src/components/HealthInsights.tsx   # goal editor
+src/components/SettingsPanel.tsx
+src/lib/db.ts / stats.ts / theme.ts
+src/store/appStore.ts
 ```
-
-### Schema highlights
-- `walks`: `UNIQUE(dog_id, date)` — upsert on create
-- `goals`: one logical row per dog (app upserts latest by `dog_id`)
 
 ---
 
@@ -102,19 +75,11 @@ npm run build
 cd src-tauri && cargo check
 ```
 
-Verified this session: `npm run build` exit 0; `cargo check` exit 0.
-
 ---
-
-## What remains
-
-1. Finish Phase 3.1 / 3.5 (visual polish + multi-monitor QA)
-2. Phase 4: tests, security audit, packaging
-3. Optional: code-split recharts; soft-delete walks; CI; `users` onboarding username
 
 ## Suggested next prompt
 
-> Resume from `docs/HANDOFF.md`. Finish Phase 3 responsive/dashboard polish, then start Phase 4 packaging prep. Keep local-first; no cloud sync.
+> Resume from `docs/HANDOFF.md`. Start Phase 4: packaging prep, basic tests, and a Tauri permissions/security pass. Keep local-first; no cloud sync.
 
 ## Do not
 
