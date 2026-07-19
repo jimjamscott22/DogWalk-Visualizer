@@ -33,3 +33,7 @@ target
 # Local SQLite (if ever written into the repo)
 *.db
 *.db-*
+
+# Accidental JSON backups written into the tree
+dogwalk-backup*.json
+**/dogwalk-backup*.json
