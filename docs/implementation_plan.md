@@ -35,19 +35,20 @@ The application will be a **Local-First Desktop App**. This approach ensures dat
 *   **Milestone:** **Project Shell & DB Schema Complete.**
     *   *Deliverable:* A project that installs on the dev machine, opens a blank window, and can store one JSON entry to SQLite.
 
-### Phase 2: Core Data Logic (Week 2)
+### Phase 2: Core Data Logic (Week 2) — **COMPLETE (2026-07-18)**
 **Objective:** Build the data ingestion engine and visualization hooks.
 
-| Task ID | Task Description | Tech/Dependencies | Est. Effort |
-| :--- | :--- | :--- | :--- |
-| **2.1** | Implement Rust CRUD endpoints for Walk Logs. | `tauri-plugin-sql` (Rust) | 6h |
-| **2.2** | Create User Profile Management (Dog Name, Breed, Weight). | Frontend + Backend | 4h |
-| **2.3** | Build "Add Walk" Form with validation (Distance > 0, Date). | React Hook Form | 4h |
-| **2.4** | Implement Data Visualization (Total Distance, Frequency). | `recharts` or `Victory` | 6h |
-| **2.5** | Add Streak Counter Logic (Consecutive days walked). | Rust/JS Logic | 3h |
+| Task ID | Task Description | Tech/Dependencies | Est. Effort | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **2.1** | Implement CRUD for Walk Logs (via SQL plugin / `src/lib/db.ts`). | `tauri-plugin-sql` | 6h | Done |
+| **2.2** | Create User Profile Management (Dog Name, Breed, Weight). | Frontend + Backend | 4h | Done |
+| **2.3** | Build "Add Walk" Form with validation (Distance > 0, Date). | React Hook Form | 4h | Done |
+| **2.4** | Implement Data Visualization (Total Distance, Frequency). | `recharts` | 6h | Done |
+| **2.5** | Add Streak Counter Logic (Consecutive days walked). | JS (`src/lib/stats.ts`) | 3h | Done |
 
 *   **Milestone:** **Data Engine Complete.**
     *   *Deliverable:* User can create a profile, log a walk, and see the data appear on a chart immediately.
+    *   *Handoff:* See `docs/HANDOFF.md`.
 
 ### Phase 3: UI Polish & Health Integration (Week 3)
 **Objective:** Refine UX to focus on "Routine" and "Health" aspects of the prompt.

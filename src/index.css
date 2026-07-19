@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+:root {
+  --color-soil: #3d2c1e;
+  --color-moss: #4a6b4a;
+  --color-leaf: #6b8f6b;
+  --color-trail: #c4a574;
+  --color-mist: #f3f0e8;
+  --color-bark: #2a2118;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: var(--color-bark);
+  background:
+    radial-gradient(ellipse at top left, rgba(107, 143, 107, 0.18), transparent 45%),
+    radial-gradient(ellipse at bottom right, rgba(196, 165, 116, 0.22), transparent 50%),
+    var(--color-mist);
+}
