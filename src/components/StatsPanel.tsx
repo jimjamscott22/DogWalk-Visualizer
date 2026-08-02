@@ -1,4 +1,5 @@
 import { buildHealthInsight } from "../lib/stats";
+import { toDisplayDistance, distanceUnitLabel, type UnitSystem } from "../lib/units";
 import type { DailyStats, Goal } from "../types";
 
 interface StatsPanelProps {
@@ -6,6 +7,7 @@ interface StatsPanelProps {
   dogName: string | null;
   goal: Goal | null;
   walkedToday: boolean;
+  unitSystem?: UnitSystem;
 }
 
 function MiniProgress({
@@ -13,11 +15,13 @@ function MiniProgress({
   current,
   target,
   unit,
+  decimal = false,
 }: {
   label: string;
   current: number;
   target: number | null | undefined;
   unit: string;
+  decimal?: boolean;
 }) {
   if (target == null || target <= 0) {
     return (
@@ -27,13 +31,12 @@ function MiniProgress({
     );
   }
   const pct = Math.min(100, Math.round((current / target) * 100));
-  const currentLabel =
-    unit === "km" ? current.toFixed(1) : String(Math.round(current));
+  const currentLabel = decimal ? current.toFixed(1) : String(Math.round(current));
   return (
     <div className="mt-3">
       <div className="mb-1 flex justify-between gap-2 text-xs text-[var(--color-bark)]/65">
         <span>
-          {currentLabel} / {target}
+          {currentLabel} / {target.toFixed(decimal ? 1 : 0)}
           {unit ? ` ${unit}` : ""}
         </span>
         <span>{pct}%</span>
@@ -53,8 +56,43 @@ export function StatsPanel({
   dogName,
   goal,
   walkedToday,
+  unitSystem = "us",
 }: StatsPanelProps) {
   const insight = buildHealthInsight(stats, goal, null);
+  const distanceUnit = distanceUnitLabel(unitSystem);
+  const displayTotalDistance = toDisplayDistance(
+    stats.total_distance_week,
+    unitSystem,
+  );
+  const displayAvgDistance = toDisplayDistance(
+    stats.avg_distance_week,
+    unitSystem,
+  );
+  const displayGoalDistance =
+    goal?.target_distance_weekly != null
+      ? toDisplayDistance(goal.target_distance_weekly, unitSystem)
+      : null;
+
+  const summaryParts: string[] = [];
+  if (stats.total_walks_week > 0) {
+    summaryParts.push(
+      `Avg ${displayAvgDistance.toFixed(1)} ${distanceUnit} per walk this week`,
+    );
+    if (insight.walks_progress != null && goal?.target_walks_per_week) {
+      summaryParts.push(
+        `${stats.total_walks_week}/${goal.target_walks_per_week} weekly walks`,
+      );
+    }
+    if (insight.distance_progress != null && displayGoalDistance != null) {
+      summaryParts.push(
+        `${displayTotalDistance.toFixed(1)}/${displayGoalDistance.toFixed(1)} ${distanceUnit} weekly distance`,
+      );
+    }
+  }
+  const summary =
+    summaryParts.length > 0
+      ? summaryParts.join(" · ")
+      : "Log walks this week to unlock health insights.";
 
   return (
     <section className="space-y-4" aria-label="Weekly progress">
@@ -122,22 +160,23 @@ export function StatsPanel({
             Distance
           </p>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-[var(--color-soil)] sm:text-3xl">
-            {stats.total_distance_week.toFixed(1)}
+            {displayTotalDistance.toFixed(1)}
             <span className="ml-1 text-base font-medium text-[var(--color-bark)]/70">
-              km
+              {distanceUnit}
             </span>
           </p>
           <MiniProgress
             label="Distance"
-            current={stats.total_distance_week}
-            target={goal?.target_distance_weekly}
-            unit="km"
+            current={displayTotalDistance}
+            target={displayGoalDistance}
+            unit={distanceUnit}
+            decimal
           />
         </article>
       </div>
 
       {stats.total_walks_week > 0 ? (
-        <p className="text-sm text-[var(--color-bark)]/75">{insight.summary}</p>
+        <p className="text-sm text-[var(--color-bark)]/75">{summary}</p>
       ) : null}
     </section>
   );

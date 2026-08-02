@@ -31,6 +31,30 @@ describe("StatsPanel", () => {
     expect(screen.getByText("Mochi")).toBeInTheDocument();
     expect(screen.getByLabelText("Weekly progress")).toBeInTheDocument();
   });
+
+  it("shows the distance unit based on unitSystem, defaulting to miles", () => {
+    const stats = {
+      total_walks_week: 2,
+      total_distance_week: 3.218688,
+      streak_days: 2,
+      avg_distance_week: 1.75,
+    };
+    const { rerender } = render(
+      <StatsPanel dogName="Mochi" walkedToday goal={null} stats={stats} />,
+    );
+    expect(screen.getByText("mi")).toBeInTheDocument();
+
+    rerender(
+      <StatsPanel
+        dogName="Mochi"
+        walkedToday
+        goal={null}
+        stats={stats}
+        unitSystem="metric"
+      />,
+    );
+    expect(screen.getByText("km")).toBeInTheDocument();
+  });
 });
 
 describe("WalkForm", () => {
