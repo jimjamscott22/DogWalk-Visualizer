@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { Dog } from "../types";
+import { toDisplayWeight, toStorageWeight, weightUnitLabel, type UnitSystem } from "../lib/units";
 
 export interface DogFormValues {
   name: string;
@@ -10,6 +11,7 @@ export interface DogFormValues {
 
 interface DogProfileFormProps {
   selectedDog: Dog | null;
+  unitSystem?: UnitSystem;
   onAdd: (values: { name: string; breed?: string; weight_kg?: number }) => Promise<void>;
   onUpdate: (values: {
     id: number;
@@ -31,6 +33,7 @@ function parseOptionalWeight(raw: string): number | undefined {
 
 export function DogProfileForm({
   selectedDog,
+  unitSystem = "us",
   onAdd,
   onUpdate,
   onSelect,
@@ -53,18 +56,24 @@ export function DogProfileForm({
         name: selectedDog.name,
         breed: selectedDog.breed ?? "",
         weight_kg:
-          selectedDog.weight_kg != null ? String(selectedDog.weight_kg) : "",
+          selectedDog.weight_kg != null
+            ? String(toDisplayWeight(selectedDog.weight_kg, unitSystem))
+            : "",
       });
     } else {
       reset({ name: "", breed: "", weight_kg: "" });
     }
-  }, [selectedDog, reset]);
+  }, [selectedDog, unitSystem, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
+    const enteredWeight = parseOptionalWeight(values.weight_kg);
     const payload = {
       name: values.name.trim(),
       breed: values.breed.trim() || undefined,
-      weight_kg: parseOptionalWeight(values.weight_kg),
+      weight_kg:
+        enteredWeight != null
+          ? toStorageWeight(enteredWeight, unitSystem)
+          : undefined,
     };
     if (selectedDog) {
       await onUpdate({ id: selectedDog.id, ...payload });
@@ -138,7 +147,7 @@ export function DogProfileForm({
       </label>
 
       <label className="block text-sm">
-        Weight kg (optional)
+        Weight ({weightUnitLabel(unitSystem)}) (optional)
         <input
           type="number"
           step={0.1}

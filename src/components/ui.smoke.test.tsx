@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StatsPanel } from "./StatsPanel";
 import { WalkForm } from "./WalkForm";
+import { DogProfileForm } from "./DogProfileForm";
 
 describe("StatsPanel", () => {
   it("shows weekly progress and walked-today status", () => {
@@ -97,5 +98,31 @@ describe("WalkForm", () => {
       /distance \(mi\)/i,
     ) as HTMLInputElement;
     expect(Number(distanceInput.value)).toBeCloseTo(1, 5);
+  });
+});
+
+describe("DogProfileForm", () => {
+  it("converts entered US weight to kg when adding a dog", async () => {
+    const user = userEvent.setup();
+    const onAdd = vi.fn().mockResolvedValue(undefined);
+    render(
+      <DogProfileForm
+        dogs={[]}
+        selectedDog={null}
+        unitSystem="us"
+        onSelect={vi.fn()}
+        onStartCreate={vi.fn()}
+        onAdd={onAdd}
+        onUpdate={vi.fn()}
+        onStatus={vi.fn()}
+      />,
+    );
+
+    await user.type(screen.getByLabelText(/name/i), "Mochi");
+    await user.type(screen.getByLabelText(/weight \(lb\)/i), "44");
+    await user.click(screen.getByRole("button", { name: /add dog/i }));
+
+    expect(onAdd).toHaveBeenCalledTimes(1);
+    expect(onAdd.mock.calls[0][0].weight_kg).toBeCloseTo(19.958, 3);
   });
 });
