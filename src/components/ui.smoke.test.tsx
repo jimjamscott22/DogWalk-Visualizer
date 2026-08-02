@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { StatsPanel } from "./StatsPanel";
 import { WalkForm } from "./WalkForm";
 import { DogProfileForm } from "./DogProfileForm";
+import { SettingsPanel } from "./SettingsPanel";
 
 describe("StatsPanel", () => {
   it("shows weekly progress and walked-today status", () => {
@@ -148,5 +149,23 @@ describe("DogProfileForm", () => {
 
     expect(onAdd).toHaveBeenCalledTimes(1);
     expect(onAdd.mock.calls[0][0].weight_kg).toBeCloseTo(19.958, 3);
+  });
+});
+
+describe("SettingsPanel", () => {
+  it("calls onUnitSystemChange with the opposite system when the toggle is clicked", async () => {
+    const user = userEvent.setup();
+    const onUnitSystemChange = vi.fn();
+    render(
+      <SettingsPanel
+        onClearAll={vi.fn()}
+        onStatus={vi.fn()}
+        unitSystem="us"
+        onUnitSystemChange={onUnitSystemChange}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /use metric units/i }));
+    expect(onUnitSystemChange).toHaveBeenCalledWith("metric");
   });
 });

@@ -9,13 +9,21 @@ import {
   toggleTheme,
   type ThemeMode,
 } from "../lib/theme";
+import type { UnitSystem } from "../lib/units";
 
 interface SettingsPanelProps {
   onClearAll: () => Promise<void>;
   onStatus: (message: string) => void;
+  unitSystem?: UnitSystem;
+  onUnitSystemChange?: (system: UnitSystem) => void;
 }
 
-export function SettingsPanel({ onClearAll, onStatus }: SettingsPanelProps) {
+export function SettingsPanel({
+  onClearAll,
+  onStatus,
+  unitSystem = "us",
+  onUnitSystemChange = () => {},
+}: SettingsPanelProps) {
   const [theme, setTheme] = useState<ThemeMode>(() => {
     const mode = getStoredTheme();
     applyTheme(mode);
@@ -78,7 +86,7 @@ export function SettingsPanel({ onClearAll, onStatus }: SettingsPanelProps) {
         Data stays on this machine. Export a JSON backup anytime.
       </p>
 
-      <div className="mt-4 grid gap-2 min-[420px]:grid-cols-3">
+      <div className="mt-4 grid gap-2 grid-cols-2 min-[640px]:grid-cols-4">
         <button
           type="button"
           disabled={busy}
@@ -86,6 +94,14 @@ export function SettingsPanel({ onClearAll, onStatus }: SettingsPanelProps) {
           className="rounded-lg bg-[var(--color-mist)] px-4 py-2.5 text-sm font-medium text-[var(--color-soil)] hover:bg-[var(--color-trail)]/30 disabled:opacity-60"
         >
           {theme === "dark" ? "Use light mode" : "Use dark mode"}
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => onUnitSystemChange(unitSystem === "us" ? "metric" : "us")}
+          className="rounded-lg bg-[var(--color-mist)] px-4 py-2.5 text-sm font-medium text-[var(--color-soil)] hover:bg-[var(--color-trail)]/30 disabled:opacity-60"
+        >
+          {unitSystem === "us" ? "Use metric units" : "Use US units"}
         </button>
         <button
           type="button"
