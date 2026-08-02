@@ -5,7 +5,11 @@ A lightweight, local-first desktop app for logging dog walks and visualizing con
 **Version:** 1.0.0  
 **Privacy:** All data is stored locally in SQLite on your machine. Nothing is sent to external servers.
 
+---
+
 ![Preview of UI](docs/img/dog-walk-tracker.png)
+
+---
 
 ## Stack
 
