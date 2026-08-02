@@ -1,6 +1,13 @@
 import { useMemo, useState } from "react";
 import { useAppStore } from "../store/appStore";
 import { buildDistanceSeries, todayIso } from "../lib/stats";
+import {
+  distanceUnitLabel,
+  getStoredUnitSystem,
+  setStoredUnitSystem,
+  toDisplayDistance,
+  type UnitSystem,
+} from "../lib/units";
 import type { Walk } from "../types";
 import { DogProfileForm } from "./DogProfileForm";
 import { HealthInsights } from "./HealthInsights";
@@ -32,6 +39,14 @@ export function DashboardShell() {
 
   const [status, setStatus] = useState<string | null>(null);
   const [editingWalk, setEditingWalk] = useState<Walk | null>(null);
+  const [unitSystem, setUnitSystemState] = useState<UnitSystem>(() =>
+    getStoredUnitSystem(),
+  );
+
+  const handleUnitSystemChange = (system: UnitSystem) => {
+    setStoredUnitSystem(system);
+    setUnitSystemState(system);
+  };
 
   const selectedDog =
     selectedDogId != null
@@ -92,6 +107,7 @@ export function DashboardShell() {
         <DogProfileForm
           dogs={dogs}
           selectedDog={null}
+          unitSystem={unitSystem}
           onSelect={selectDog}
           onStartCreate={startCreateDog}
           onAdd={async (values) => {
@@ -102,7 +118,12 @@ export function DashboardShell() {
           }}
           onStatus={setStatus}
         />
-        <SettingsPanel onClearAll={clearAllData} onStatus={setStatus} />
+        <SettingsPanel
+          onClearAll={clearAllData}
+          onStatus={setStatus}
+          unitSystem={unitSystem}
+          onUnitSystemChange={handleUnitSystemChange}
+        />
       </div>
     );
   }
@@ -176,6 +197,7 @@ export function DashboardShell() {
           dogName={selectedDog?.name ?? null}
           goal={goal}
           walkedToday={walkedToday}
+          unitSystem={unitSystem}
         />
       )}
 
@@ -196,13 +218,14 @@ export function DashboardShell() {
               </p>
             </div>
           ) : (
-            <WalkChart data={chartData} />
+            <WalkChart data={chartData} unitSystem={unitSystem} />
           )}
         </section>
 
         <WalkForm
           dogId={selectedDogId}
           editing={editingWalk}
+          unitSystem={unitSystem}
           onCreate={async (values) => {
             await addWalk(values);
           }}
@@ -218,6 +241,7 @@ export function DashboardShell() {
         <DogProfileForm
           dogs={dogs}
           selectedDog={isCreatingDog ? null : selectedDog}
+          unitSystem={unitSystem}
           onSelect={(id) => {
             selectDog(id);
             setEditingWalk(null);
@@ -241,6 +265,7 @@ export function DashboardShell() {
           weightKg={selectedDog?.weight_kg ?? null}
           goal={goal}
           stats={stats}
+          unitSystem={unitSystem}
           onSave={saveGoal}
           onStatus={setStatus}
         />
@@ -272,7 +297,9 @@ export function DashboardShell() {
                     {walk.date}
                   </p>
                   <p className="break-words text-[var(--color-bark)]/70">
-                    {walk.duration_minutes ?? "—"} min · {walk.distance_km} km
+                    {walk.duration_minutes ?? "—"} min ·{" "}
+                    {toDisplayDistance(walk.distance_km, unitSystem).toFixed(1)}{" "}
+                    {distanceUnitLabel(unitSystem)}
                     {walk.notes ? ` · ${walk.notes}` : ""}
                   </p>
                 </div>
@@ -302,7 +329,12 @@ export function DashboardShell() {
         )}
       </section>
 
-      <SettingsPanel onClearAll={clearAllData} onStatus={setStatus} />
+      <SettingsPanel
+        onClearAll={clearAllData}
+        onStatus={setStatus}
+        unitSystem={unitSystem}
+        onUnitSystemChange={handleUnitSystemChange}
+      />
     </div>
   );
 }
