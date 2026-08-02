@@ -37,3 +37,6 @@ target
 # Accidental JSON backups written into the tree
 dogwalk-backup*.json
 **/dogwalk-backup*.json
+
+# SDD scratch workspace (subagent-driven-development skill)
+.superpowers/
