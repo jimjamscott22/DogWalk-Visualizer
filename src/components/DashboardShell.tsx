@@ -9,6 +9,7 @@ import {
   type UnitSystem,
 } from "../lib/units";
 import type { Walk } from "../types";
+import { DogWalkBanner } from "./DogWalkBanner";
 import { DogProfileForm } from "./DogProfileForm";
 import { HealthInsights } from "./HealthInsights";
 import { SettingsPanel } from "./SettingsPanel";
@@ -104,6 +105,7 @@ export function DashboardShell() {
             </p>
           )}
         </header>
+        <DogWalkBanner />
         <DogProfileForm
           dogs={dogs}
           selectedDog={null}
@@ -152,6 +154,8 @@ export function DashboardShell() {
             </p>
           )}
         </div>
+
+        <DogWalkBanner compact />
 
         <nav
           aria-label="Dogs"

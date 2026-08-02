@@ -50,3 +50,15 @@ body {
 #root {
   min-width: 0;
 }
+
+.dog-walk-banner {
+  background: var(--color-mist);
+}
+
+.dog-walk-banner-image {
+  transition: filter 200ms ease;
+}
+
+[data-theme="dark"] .dog-walk-banner-image {
+  filter: brightness(0.72) saturate(0.82) contrast(1.05);
+}

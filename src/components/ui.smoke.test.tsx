@@ -5,6 +5,17 @@ import { StatsPanel } from "./StatsPanel";
 import { WalkForm } from "./WalkForm";
 import { DogProfileForm } from "./DogProfileForm";
 import { SettingsPanel } from "./SettingsPanel";
+import { DogWalkBanner } from "./DogWalkBanner";
+
+describe("DogWalkBanner", () => {
+  it("renders the generated dog-walking artwork with descriptive alt text", () => {
+    render(<DogWalkBanner />);
+
+    expect(
+      screen.getByRole("img", { name: /two dogs walking together/i }),
+    ).toHaveAttribute("src", "/dogs-walking-neighborhood.png");
+  });
+});
 
 describe("StatsPanel", () => {
   it("shows weekly progress and walked-today status", () => {
