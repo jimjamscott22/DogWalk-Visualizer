@@ -68,7 +68,7 @@ export function HealthInsights({
           : "",
       target_distance_weekly:
         goal?.target_distance_weekly != null
-          ? String(toDisplayDistance(goal.target_distance_weekly, unitSystem))
+          ? toDisplayDistance(goal.target_distance_weekly, unitSystem).toFixed(1)
           : "",
     });
   }, [goal, unitSystem, reset]);

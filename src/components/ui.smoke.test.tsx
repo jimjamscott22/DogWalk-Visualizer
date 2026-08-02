@@ -124,6 +124,39 @@ describe("WalkForm", () => {
     ) as HTMLInputElement;
     expect(Number(distanceInput.value)).toBeCloseTo(1, 5);
   });
+
+  it("rounds a non-step-clean converted distance so the edit form can still be submitted", async () => {
+    const user = userEvent.setup();
+    const onUpdate = vi.fn().mockResolvedValue(undefined);
+    render(
+      <WalkForm
+        dogId={1}
+        unitSystem="us"
+        editing={{
+          id: 1,
+          dog_id: 1,
+          date: "2026-07-19",
+          duration_minutes: 30,
+          distance_km: 5,
+          notes: null,
+          created_at: "2026-07-19T00:00:00Z",
+        }}
+        onCreate={vi.fn()}
+        onUpdate={onUpdate}
+        onCancelEdit={vi.fn()}
+        onStatus={vi.fn()}
+      />,
+    );
+
+    const distanceInput = screen.getByLabelText(
+      /distance \(mi\)/i,
+    ) as HTMLInputElement;
+    expect(distanceInput.value).toBe("3.1");
+
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("DogProfileForm", () => {

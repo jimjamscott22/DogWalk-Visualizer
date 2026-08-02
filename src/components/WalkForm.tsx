@@ -64,7 +64,7 @@ export function WalkForm({
           editing.duration_minutes != null
             ? String(editing.duration_minutes)
             : "",
-        distance_km: String(toDisplayDistance(editing.distance_km, unitSystem)),
+        distance_km: toDisplayDistance(editing.distance_km, unitSystem).toFixed(1),
         notes: editing.notes ?? "",
       });
     } else {

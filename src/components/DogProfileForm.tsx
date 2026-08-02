@@ -57,7 +57,7 @@ export function DogProfileForm({
         breed: selectedDog.breed ?? "",
         weight_kg:
           selectedDog.weight_kg != null
-            ? String(toDisplayWeight(selectedDog.weight_kg, unitSystem))
+            ? toDisplayWeight(selectedDog.weight_kg, unitSystem).toFixed(1)
             : "",
       });
     } else {
