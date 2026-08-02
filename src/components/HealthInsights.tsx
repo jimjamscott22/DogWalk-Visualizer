@@ -1,6 +1,14 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { buildHealthInsight } from "../lib/stats";
+import {
+  distancePerWeightUnitLabel,
+  distanceUnitLabel,
+  toDisplayDistance,
+  toDisplayDistancePerWeight,
+  toStorageDistance,
+  type UnitSystem,
+} from "../lib/units";
 import type { DailyStats, Goal } from "../types";
 
 interface GoalFormValues {
@@ -14,6 +22,7 @@ interface HealthInsightsProps {
   weightKg: number | null;
   goal: Goal | null;
   stats: DailyStats;
+  unitSystem?: UnitSystem;
   onSave: (input: {
     dog_id: number;
     target_distance_weekly?: number | null;
@@ -35,6 +44,7 @@ export function HealthInsights({
   weightKg,
   goal,
   stats,
+  unitSystem = "us",
   onSave,
   onStatus,
 }: HealthInsightsProps) {
@@ -58,10 +68,10 @@ export function HealthInsights({
           : "",
       target_distance_weekly:
         goal?.target_distance_weekly != null
-          ? String(goal.target_distance_weekly)
+          ? String(toDisplayDistance(goal.target_distance_weekly, unitSystem))
           : "",
     });
-  }, [goal, reset]);
+  }, [goal, unitSystem, reset]);
 
   const insight = buildHealthInsight(stats, goal, weightKg);
 
@@ -71,11 +81,15 @@ export function HealthInsights({
       return;
     }
     const walks = parseOptionalPositive(values.target_walks_per_week);
-    const distance = parseOptionalPositive(values.target_distance_weekly);
-    if (walks === undefined || distance === undefined) {
+    const distanceEntered = parseOptionalPositive(values.target_distance_weekly);
+    if (walks === undefined || distanceEntered === undefined) {
       onStatus("Goals must be blank or greater than 0");
       return;
     }
+    const distance =
+      distanceEntered != null
+        ? toStorageDistance(distanceEntered, unitSystem)
+        : distanceEntered;
     await onSave({
       dog_id: dogId,
       target_walks_per_week: walks,
@@ -111,9 +125,9 @@ export function HealthInsights({
         <p className="mt-1 text-sm text-[var(--color-bark)]/70">
           Targets feed the weekly progress bars above.
           {insight.km_per_kg != null
-            ? ` Currently ~${insight.km_per_kg.toFixed(3)} km per kg.`
+            ? ` Currently ~${toDisplayDistancePerWeight(insight.km_per_kg, unitSystem).toFixed(3)} ${distancePerWeightUnitLabel(unitSystem)}.`
             : weightKg == null
-              ? " Add weight on the dog profile for km-per-kg insight."
+              ? ` Add weight on the dog profile for a ${distancePerWeightUnitLabel(unitSystem)} insight.`
               : ""}
         </p>
       </div>
@@ -144,7 +158,7 @@ export function HealthInsights({
           )}
         </label>
         <label className="block text-sm">
-          Target distance km / week
+          Target distance {distanceUnitLabel(unitSystem)} / week
           <input
             type="number"
             min={0.1}
