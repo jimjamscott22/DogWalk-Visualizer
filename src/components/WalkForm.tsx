@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { todayIso } from "../lib/stats";
 import type { Walk } from "../types";
+import { toDisplayDistance, toStorageDistance, distanceUnitLabel, type UnitSystem } from "../lib/units";
 
 export interface WalkFormValues {
   date: string;
@@ -13,6 +14,7 @@ export interface WalkFormValues {
 interface WalkFormProps {
   dogId: number | null;
   editing: Walk | null;
+  unitSystem?: UnitSystem;
   onCreate: (values: {
     dog_id: number;
     date: string;
@@ -34,6 +36,7 @@ interface WalkFormProps {
 export function WalkForm({
   dogId,
   editing,
+  unitSystem = "us",
   onCreate,
   onUpdate,
   onCancelEdit,
@@ -61,7 +64,7 @@ export function WalkForm({
           editing.duration_minutes != null
             ? String(editing.duration_minutes)
             : "",
-        distance_km: String(editing.distance_km),
+        distance_km: String(toDisplayDistance(editing.distance_km, unitSystem)),
         notes: editing.notes ?? "",
       });
     } else {
@@ -72,7 +75,7 @@ export function WalkForm({
         notes: "",
       });
     }
-  }, [editing, reset]);
+  }, [editing, unitSystem, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
     if (dogId == null) {
@@ -80,7 +83,7 @@ export function WalkForm({
       return;
     }
 
-    const distance_km = Number(values.distance_km);
+    const distance_km = toStorageDistance(Number(values.distance_km), unitSystem);
     const durationRaw = values.duration_minutes.trim();
     const duration_minutes = durationRaw
       ? Number(durationRaw)
@@ -174,7 +177,7 @@ export function WalkForm({
       </label>
 
       <label className="block text-sm">
-        Distance (km)
+        Distance ({distanceUnitLabel(unitSystem)})
         <input
           type="number"
           min={0.1}

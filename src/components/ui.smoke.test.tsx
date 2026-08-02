@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { StatsPanel } from "./StatsPanel";
 import { WalkForm } from "./WalkForm";
 
@@ -45,5 +46,56 @@ describe("WalkForm", () => {
     );
 
     expect(screen.getByRole("button", { name: /log walk/i })).toBeDisabled();
+  });
+
+  it("converts entered US distance to km when creating a walk", async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    render(
+      <WalkForm
+        dogId={1}
+        editing={null}
+        unitSystem="us"
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+        onCancelEdit={vi.fn()}
+        onStatus={vi.fn()}
+      />,
+    );
+
+    const distanceInput = screen.getByLabelText(/distance \(mi\)/i);
+    await user.clear(distanceInput);
+    await user.type(distanceInput, "2");
+    await user.click(screen.getByRole("button", { name: /log walk/i }));
+
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    expect(onCreate.mock.calls[0][0].distance_km).toBeCloseTo(3.218688, 5);
+  });
+
+  it("shows the stored km value converted to miles when editing", () => {
+    render(
+      <WalkForm
+        dogId={1}
+        unitSystem="us"
+        editing={{
+          id: 1,
+          dog_id: 1,
+          date: "2026-07-19",
+          duration_minutes: 30,
+          distance_km: 1.609344,
+          notes: null,
+          created_at: "2026-07-19T00:00:00Z",
+        }}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onCancelEdit={vi.fn()}
+        onStatus={vi.fn()}
+      />,
+    );
+
+    const distanceInput = screen.getByLabelText(
+      /distance \(mi\)/i,
+    ) as HTMLInputElement;
+    expect(Number(distanceInput.value)).toBeCloseTo(1, 5);
   });
 });
