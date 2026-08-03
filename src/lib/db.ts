@@ -42,12 +42,13 @@ export async function listDogs(): Promise<Dog[]> {
 export async function addDog(input: CreateDogInput): Promise<void> {
   const db = await getDb();
   await db.execute(
-    "INSERT INTO dogs (user_id, name, breed, weight_kg) VALUES ($1, $2, $3, $4)",
+    "INSERT INTO dogs (user_id, name, breed, weight_kg, photo) VALUES ($1, $2, $3, $4, $5)",
     [
       input.user_id ?? null,
       input.name,
       input.breed ?? null,
       input.weight_kg ?? null,
+      input.photo ?? null,
     ],
   );
 }
@@ -56,9 +57,15 @@ export async function updateDog(input: UpdateDogInput): Promise<void> {
   const db = await getDb();
   await db.execute(
     `UPDATE dogs
-     SET name = $1, breed = $2, weight_kg = $3
-     WHERE id = $4`,
-    [input.name, input.breed ?? null, input.weight_kg ?? null, input.id],
+     SET name = $1, breed = $2, weight_kg = $3, photo = $4
+     WHERE id = $5`,
+    [
+      input.name,
+      input.breed ?? null,
+      input.weight_kg ?? null,
+      input.photo ?? null,
+      input.id,
+    ],
   );
 }
 

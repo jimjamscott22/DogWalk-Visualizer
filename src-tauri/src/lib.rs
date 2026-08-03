@@ -44,6 +44,11 @@ const MIGRATION_V1_SQL: &str = r#"
                 CREATE INDEX IF NOT EXISTS idx_walks_date ON walks(date);
             "#;
 
+/// V2: small profile picture per dog, stored as a base64 data URL (~5-10 KB).
+const MIGRATION_V2_SQL: &str = r#"
+                ALTER TABLE dogs ADD COLUMN photo TEXT;
+            "#;
+
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {name}! Welcome to Dog Walk Tracker.")
@@ -57,12 +62,20 @@ fn db_url() -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![Migration {
-        version: 1,
-        description: "create_initial_tables",
-        sql: MIGRATION_V1_SQL,
-        kind: MigrationKind::Up,
-    }];
+    let migrations = vec![
+        Migration {
+            version: 1,
+            description: "create_initial_tables",
+            sql: MIGRATION_V1_SQL,
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "add_dog_photo_column",
+            sql: MIGRATION_V2_SQL,
+            kind: MigrationKind::Up,
+        },
+    ];
 
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
@@ -101,6 +114,15 @@ mod tests {
         assert!(sql.contains("CREATE TABLE"));
         assert!(sql.contains("UNIQUE(DOG_ID, DATE)"));
         // No dynamic string concat / unsafe DROP of unrelated tables
+        assert!(!sql.contains("DROP TABLE"));
+        assert!(!sql.contains(";--"));
+        assert!(!sql.contains("ATTACH DATABASE"));
+    }
+
+    #[test]
+    fn migration_v2_uses_safe_ddl_patterns() {
+        let sql = MIGRATION_V2_SQL.to_uppercase();
+        assert!(sql.contains("ALTER TABLE DOGS ADD COLUMN PHOTO TEXT"));
         assert!(!sql.contains("DROP TABLE"));
         assert!(!sql.contains(";--"));
         assert!(!sql.contains("ATTACH DATABASE"));

@@ -20,12 +20,14 @@ interface AppState {
     name: string;
     breed?: string;
     weight_kg?: number;
+    photo?: string | null;
   }) => Promise<void>;
   updateDog: (input: {
     id: number;
     name: string;
     breed?: string;
     weight_kg?: number;
+    photo?: string | null;
   }) => Promise<void>;
   addWalk: (input: {
     dog_id: number;

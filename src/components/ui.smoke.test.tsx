@@ -194,6 +194,50 @@ describe("DogProfileForm", () => {
     expect(onAdd).toHaveBeenCalledTimes(1);
     expect(onAdd.mock.calls[0][0].weight_kg).toBeCloseTo(19.958, 3);
   });
+
+  const dogBase = {
+    user_id: null,
+    breed: null,
+    weight_kg: null,
+    created_at: "2026-07-19T00:00:00Z",
+  };
+
+  it("shows a photo avatar in the selector chip when the dog has one", () => {
+    const photo = "data:image/jpeg;base64,abc123";
+    render(
+      <DogProfileForm
+        dogs={[{ ...dogBase, id: 1, name: "Mochi", photo }]}
+        selectedDog={null}
+        onSelect={vi.fn()}
+        onStartCreate={vi.fn()}
+        onAdd={vi.fn()}
+        onUpdate={vi.fn()}
+        onStatus={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("img", { name: /mochi profile photo/i }),
+    ).toHaveAttribute("src", photo);
+  });
+
+  it("falls back to the dog's initial in the chip when there is no photo", () => {
+    render(
+      <DogProfileForm
+        dogs={[{ ...dogBase, id: 1, name: "Mochi", photo: null }]}
+        selectedDog={null}
+        onSelect={vi.fn()}
+        onStartCreate={vi.fn()}
+        onAdd={vi.fn()}
+        onUpdate={vi.fn()}
+        onStatus={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    const chip = screen.getByRole("button", { name: /mochi/i });
+    expect(chip.textContent).toContain("M");
+  });
 });
 
 describe("SettingsPanel", () => {

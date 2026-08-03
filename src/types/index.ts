@@ -10,6 +10,8 @@ export interface Dog {
   name: string;
   breed: string | null;
   weight_kg: number | null;
+  /** Small profile picture as a base64 data URL (96x96 JPEG), or null. */
+  photo: string | null;
   created_at: string;
 }
 
@@ -51,6 +53,7 @@ export interface CreateDogInput {
   name: string;
   breed?: string;
   weight_kg?: number;
+  photo?: string | null;
   user_id?: number;
 }
 
@@ -59,6 +62,7 @@ export interface UpdateDogInput {
   name: string;
   breed?: string;
   weight_kg?: number;
+  photo?: string | null;
 }
 
 export interface DailyStats {

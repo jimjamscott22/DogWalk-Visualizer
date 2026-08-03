@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { Dog } from "../types";
 import { toDisplayWeight, toStorageWeight, weightUnitLabel, type UnitSystem } from "../lib/units";
+import { processDogPhoto } from "../lib/image";
 
 export interface DogFormValues {
   name: string;
@@ -12,12 +13,18 @@ export interface DogFormValues {
 interface DogProfileFormProps {
   selectedDog: Dog | null;
   unitSystem?: UnitSystem;
-  onAdd: (values: { name: string; breed?: string; weight_kg?: number }) => Promise<void>;
+  onAdd: (values: {
+    name: string;
+    breed?: string;
+    weight_kg?: number;
+    photo?: string | null;
+  }) => Promise<void>;
   onUpdate: (values: {
     id: number;
     name: string;
     breed?: string;
     weight_kg?: number;
+    photo?: string | null;
   }) => Promise<void>;
   onSelect: (id: number) => void;
   onStartCreate: () => void;
@@ -29,6 +36,34 @@ function parseOptionalWeight(raw: string): number | undefined {
   if (!raw.trim()) return undefined;
   const n = Number(raw);
   return Number.isFinite(n) ? n : undefined;
+}
+
+function DogAvatar({
+  photo,
+  name,
+  sizeClass,
+}: {
+  photo: string | null;
+  name: string;
+  sizeClass: string;
+}) {
+  if (photo) {
+    return (
+      <img
+        src={photo}
+        alt={`${name} profile photo`}
+        className={`${sizeClass} shrink-0 rounded-full object-cover`}
+      />
+    );
+  }
+  return (
+    <span
+      aria-hidden="true"
+      className={`${sizeClass} flex shrink-0 items-center justify-center rounded-full bg-[var(--color-trail)]/40 font-medium uppercase text-[var(--color-soil)]`}
+    >
+      {name.trim().charAt(0) || "?"}
+    </span>
+  );
 }
 
 export function DogProfileForm({
@@ -49,6 +84,31 @@ export function DogProfileForm({
   } = useForm<DogFormValues>({
     defaultValues: { name: "", breed: "", weight_kg: "" },
   });
+
+  // undefined = untouched (keep saved photo), string = new choice, null = removed
+  const [pendingPhoto, setPendingPhoto] = useState<string | null | undefined>(
+    undefined,
+  );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const displayedPhoto =
+    pendingPhoto !== undefined ? pendingPhoto : selectedDog?.photo ?? null;
+
+  useEffect(() => {
+    setPendingPhoto(undefined);
+  }, [selectedDog]);
+
+  const handlePhotoChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      setPendingPhoto(await processDogPhoto(file));
+    } catch (err) {
+      onStatus(err instanceof Error ? err.message : "Could not load photo");
+    }
+  };
 
   useEffect(() => {
     if (selectedDog) {
@@ -74,6 +134,7 @@ export function DogProfileForm({
         enteredWeight != null
           ? toStorageWeight(enteredWeight, unitSystem)
           : undefined,
+      photo: displayedPhoto,
     };
     if (selectedDog) {
       await onUpdate({ id: selectedDog.id, ...payload });
@@ -82,6 +143,7 @@ export function DogProfileForm({
       await onAdd(payload);
       onStatus("Dog added");
       reset({ name: "", breed: "", weight_kg: "" });
+      setPendingPhoto(undefined);
     }
   });
 
@@ -100,12 +162,13 @@ export function DogProfileForm({
             <button
               type="button"
               onClick={() => onSelect(dog.id)}
-              className={`rounded-lg px-3 py-1.5 ${
+              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 ${
                 selectedDog?.id === dog.id
                   ? "bg-[var(--color-moss)] text-white"
                   : "bg-[var(--color-mist)] text-[var(--color-soil)] hover:bg-[var(--color-trail)]/30"
               }`}
             >
+              <DogAvatar photo={dog.photo} name={dog.name} sizeClass="h-5 w-5 text-[10px]" />
               {dog.name}
             </button>
           </li>
@@ -120,6 +183,40 @@ export function DogProfileForm({
           </button>
         </li>
       </ul>
+
+      <div className="flex items-center gap-3 text-sm">
+        <DogAvatar
+          photo={displayedPhoto}
+          name={selectedDog?.name ?? ""}
+          sizeClass="h-12 w-12 text-lg"
+        />
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="rounded-lg bg-[var(--color-mist)] px-3 py-1.5 text-[var(--color-soil)] hover:bg-[var(--color-trail)]/30"
+          >
+            {displayedPhoto ? "Change photo" : "Choose photo"}
+          </button>
+          {displayedPhoto && (
+            <button
+              type="button"
+              onClick={() => setPendingPhoto(null)}
+              className="rounded-lg px-3 py-1.5 text-[var(--color-moss)] underline-offset-2 hover:underline"
+            >
+              Remove
+            </button>
+          )}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          aria-label="Dog photo"
+          className="hidden"
+          onChange={handlePhotoChange}
+        />
+      </div>
 
       <label className="block text-sm">
         Name
