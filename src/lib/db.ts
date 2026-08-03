@@ -39,9 +39,9 @@ export async function listDogs(): Promise<Dog[]> {
   return db.select<Dog[]>("SELECT * FROM dogs ORDER BY name ASC");
 }
 
-export async function addDog(input: CreateDogInput): Promise<void> {
+export async function addDog(input: CreateDogInput): Promise<number> {
   const db = await getDb();
-  await db.execute(
+  const result = await db.execute(
     "INSERT INTO dogs (user_id, name, breed, weight_kg, photo) VALUES ($1, $2, $3, $4, $5)",
     [
       input.user_id ?? null,
@@ -51,6 +51,7 @@ export async function addDog(input: CreateDogInput): Promise<void> {
       input.photo ?? null,
     ],
   );
+  return result.lastInsertId ?? -1;
 }
 
 export async function updateDog(input: UpdateDogInput): Promise<void> {

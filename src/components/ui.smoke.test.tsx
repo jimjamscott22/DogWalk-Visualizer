@@ -6,6 +6,9 @@ import { WalkForm } from "./WalkForm";
 import { DogProfileForm } from "./DogProfileForm";
 import { SettingsPanel } from "./SettingsPanel";
 import { DogWalkBanner } from "./DogWalkBanner";
+import { ConsistencyGrid } from "./ConsistencyGrid";
+import { buildConsistencyWeeks } from "../lib/stats";
+import type { Walk } from "../types";
 
 describe("DogWalkBanner", () => {
   it("renders the generated dog-walking artwork with descriptive alt text", () => {
@@ -237,6 +240,45 @@ describe("DogProfileForm", () => {
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
     const chip = screen.getByRole("button", { name: /mochi/i });
     expect(chip.textContent).toContain("M");
+  });
+});
+
+function walk(partial: Partial<Walk> & Pick<Walk, "date" | "distance_km">): Walk {
+  return {
+    id: partial.id ?? 1,
+    dog_id: partial.dog_id ?? 1,
+    date: partial.date,
+    duration_minutes: partial.duration_minutes ?? 30,
+    distance_km: partial.distance_km,
+    notes: partial.notes ?? null,
+    created_at: partial.created_at ?? "2026-07-01T00:00:00Z",
+  };
+}
+
+describe("ConsistencyGrid", () => {
+  it("shows how many weeks hit the goal when a goal is set", () => {
+    const walks = [
+      walk({ id: 1, date: "2026-07-13", distance_km: 2 }),
+      walk({ id: 2, date: "2026-07-14", distance_km: 2 }),
+      walk({ id: 3, date: "2026-07-15", distance_km: 2 }),
+    ];
+    const goal = { target_walks_per_week: 3, target_distance_weekly: null };
+    const weeks = buildConsistencyWeeks(walks, goal, 2, "2026-07-19");
+
+    render(<ConsistencyGrid weeks={weeks} goalActive unitSystem="metric" />);
+
+    expect(
+      screen.getByText("1 of 2 weeks hit your goal"),
+    ).toBeInTheDocument();
+  });
+
+  it("prompts to set a goal when none is active", () => {
+    const weeks = buildConsistencyWeeks([], null, 2, "2026-07-19");
+    render(<ConsistencyGrid weeks={weeks} goalActive={false} />);
+
+    expect(
+      screen.getByText(/set a weekly goal below to start tracking hits/i),
+    ).toBeInTheDocument();
   });
 });
 

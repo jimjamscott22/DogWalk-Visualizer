@@ -9,8 +9,14 @@ function formatIso(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
+/** Today's date in the user's local timezone (not UTC — a walk logged at
+ * 8pm Pacific must not roll over to tomorrow). */
 export function todayIso(): string {
-  return formatIso(new Date());
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 /** Consecutive days with at least one walk, ending at `asOf` (or yesterday if none today). */
@@ -157,4 +163,87 @@ export function buildDistanceSeries(
     });
   }
   return points;
+}
+
+export interface ConsistencyDay {
+  date: string;
+  walked: boolean;
+  distance_km: number;
+  isFuture: boolean;
+  isToday: boolean;
+}
+
+export interface ConsistencyWeek {
+  weekStart: string;
+  days: ConsistencyDay[];
+  totalWalks: number;
+  totalDistance: number;
+  /** True once this week's walk-count or distance goal has been reached
+   * (for the in-progress week, this reflects progress so far). */
+  goalMet: boolean;
+}
+
+/**
+ * Mon–Sun weeks for the last `weeks` weeks (oldest first), for the
+ * consistency grid. A day's cell "levels up" when its week met a weekly
+ * goal, so meeting the habit reads at a glance, not just individual walks.
+ */
+export function buildConsistencyWeeks(
+  walks: Walk[],
+  goal: {
+    target_walks_per_week: number | null;
+    target_distance_weekly: number | null;
+  } | null,
+  weeks = 10,
+  asOf: string = todayIso(),
+): ConsistencyWeek[] {
+  const byDate = new Map<string, { distance_km: number; walks: number }>();
+  for (const walk of walks) {
+    const prev = byDate.get(walk.date) ?? { distance_km: 0, walks: 0 };
+    byDate.set(walk.date, {
+      distance_km: prev.distance_km + (walk.distance_km ?? 0),
+      walks: prev.walks + 1,
+    });
+  }
+
+  const currentWeekStart = toUtcDate(startOfWeekIso(asOf));
+  const result: ConsistencyWeek[] = [];
+
+  for (let w = weeks - 1; w >= 0; w -= 1) {
+    const weekStartDate = new Date(currentWeekStart);
+    weekStartDate.setUTCDate(currentWeekStart.getUTCDate() - w * 7);
+    const weekStart = formatIso(weekStartDate);
+
+    const days: ConsistencyDay[] = [];
+    let totalWalks = 0;
+    let totalDistance = 0;
+    for (let i = 0; i < 7; i += 1) {
+      const d = new Date(weekStartDate);
+      d.setUTCDate(weekStartDate.getUTCDate() + i);
+      const iso = formatIso(d);
+      const entry = byDate.get(iso);
+      const walked = (entry?.walks ?? 0) > 0;
+      totalWalks += entry?.walks ?? 0;
+      totalDistance += entry?.distance_km ?? 0;
+      days.push({
+        date: iso,
+        walked,
+        distance_km: entry?.distance_km ?? 0,
+        isFuture: iso > asOf,
+        isToday: iso === asOf,
+      });
+    }
+
+    const goalMet =
+      (goal?.target_walks_per_week != null &&
+        goal.target_walks_per_week > 0 &&
+        totalWalks >= goal.target_walks_per_week) ||
+      (goal?.target_distance_weekly != null &&
+        goal.target_distance_weekly > 0 &&
+        totalDistance >= goal.target_distance_weekly);
+
+    result.push({ weekStart, days, totalWalks, totalDistance, goalMet });
+  }
+
+  return result;
 }

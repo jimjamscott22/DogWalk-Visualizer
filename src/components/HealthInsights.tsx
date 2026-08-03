@@ -152,7 +152,7 @@ export function HealthInsights({
             placeholder="e.g. 5"
           />
           {errors.target_walks_per_week && (
-            <span className="mt-1 block text-xs text-red-700">
+            <span className="mt-1 block text-xs text-[var(--color-danger)]">
               {errors.target_walks_per_week.message}
             </span>
           )}
@@ -176,7 +176,7 @@ export function HealthInsights({
             placeholder="e.g. 10"
           />
           {errors.target_distance_weekly && (
-            <span className="mt-1 block text-xs text-red-700">
+            <span className="mt-1 block text-xs text-[var(--color-danger)]">
               {errors.target_distance_weekly.message}
             </span>
           )}

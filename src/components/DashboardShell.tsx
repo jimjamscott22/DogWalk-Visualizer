@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAppStore } from "../store/appStore";
-import { buildDistanceSeries, todayIso } from "../lib/stats";
+import { buildConsistencyWeeks, buildDistanceSeries, todayIso } from "../lib/stats";
 import {
   distanceUnitLabel,
   getStoredUnitSystem,
@@ -9,6 +9,7 @@ import {
   type UnitSystem,
 } from "../lib/units";
 import type { Walk } from "../types";
+import { ConsistencyGrid } from "./ConsistencyGrid";
 import { DogWalkBanner } from "./DogWalkBanner";
 import { DogProfileForm } from "./DogProfileForm";
 import { HealthInsights } from "./HealthInsights";
@@ -55,6 +56,12 @@ export function DashboardShell() {
       : null;
 
   const chartData = useMemo(() => buildDistanceSeries(walks, 14), [walks]);
+  const consistencyWeeks = useMemo(
+    () => buildConsistencyWeeks(walks, goal, 10),
+    [walks, goal],
+  );
+  const goalActive =
+    goal?.target_walks_per_week != null || goal?.target_distance_weekly != null;
   const walkedToday = useMemo(
     () => walks.some((w) => w.date === todayIso()),
     [walks],
@@ -64,9 +71,9 @@ export function DashboardShell() {
   if (error) {
     return (
       <div className="mx-auto flex min-h-full w-full max-w-3xl items-center justify-center p-4 sm:p-8">
-        <div className="w-full rounded-xl border border-red-200 bg-[var(--color-panel)] p-5 shadow-sm sm:p-6">
-          <h1 className="text-xl font-semibold text-red-800">Database error</h1>
-          <p className="mt-2 text-sm text-red-700 break-words">{error}</p>
+        <div className="w-full rounded-xl border border-[var(--color-danger-border)] bg-[var(--color-panel)] p-5 shadow-sm sm:p-6">
+          <h1 className="text-xl font-semibold text-[var(--color-danger)]">Database error</h1>
+          <p className="mt-2 text-sm text-[var(--color-danger)] break-words">{error}</p>
           <p className="mt-3 text-sm text-[var(--color-bark)]/70">
             Try restarting the app. If this persists, use Clear all data from
             Settings after the database loads, or reinstall while keeping a JSON
@@ -205,6 +212,14 @@ export function DashboardShell() {
         />
       )}
 
+      {!isCreatingDog && walks.length > 0 && (
+        <ConsistencyGrid
+          weeks={consistencyWeeks}
+          goalActive={goalActive}
+          unitSystem={unitSystem}
+        />
+      )}
+
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.9fr)]">
         <section className="rounded-2xl bg-[var(--color-panel)] p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40 sm:p-5">
           <h2 className="mb-3 text-lg font-medium text-[var(--color-soil)]">
@@ -317,12 +332,18 @@ export function DashboardShell() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      void removeWalk(walk.id);
-                      if (editingWalk?.id === walk.id) setEditingWalk(null);
-                      setStatus("Walk deleted");
+                    onClick={async () => {
+                      try {
+                        await removeWalk(walk.id);
+                        if (editingWalk?.id === walk.id) setEditingWalk(null);
+                        setStatus("Walk deleted");
+                      } catch (err) {
+                        const message =
+                          err instanceof Error ? err.message : String(err);
+                        setStatus(`Could not delete walk: ${message}`);
+                      }
                     }}
-                    className="rounded-lg px-3 py-1.5 text-[var(--color-soil)] hover:bg-red-50 hover:text-red-700"
+                    className="rounded-lg px-3 py-1.5 text-[var(--color-soil)] hover:bg-[var(--color-danger-soft)] hover:text-[var(--color-danger)]"
                   >
                     Delete
                   </button>

@@ -90,31 +90,42 @@ export function WalkForm({
       : undefined;
     const notes = values.notes.trim() || undefined;
 
-    if (editing) {
-      await onUpdate({
-        id: editing.id,
-        date: values.date,
-        duration_minutes,
-        distance_km,
-        notes,
-      });
-      onStatus("Walk updated");
-      onCancelEdit();
-    } else {
-      await onCreate({
-        dog_id: dogId,
-        date: values.date,
-        duration_minutes,
-        distance_km,
-        notes,
-      });
-      onStatus("Walk logged");
-      reset({
-        date: todayIso(),
-        duration_minutes: "30",
-        distance_km: "1.0",
-        notes: "",
-      });
+    try {
+      if (editing) {
+        await onUpdate({
+          id: editing.id,
+          date: values.date,
+          duration_minutes,
+          distance_km,
+          notes,
+        });
+        onStatus("Walk updated");
+        onCancelEdit();
+      } else {
+        await onCreate({
+          dog_id: dogId,
+          date: values.date,
+          duration_minutes,
+          distance_km,
+          notes,
+        });
+        onStatus("Walk logged");
+        reset({
+          date: todayIso(),
+          duration_minutes: "30",
+          distance_km: "1.0",
+          notes: "",
+        });
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const isDuplicateDate =
+        /UNIQUE constraint failed/i.test(message) && /walks/i.test(message);
+      onStatus(
+        isDuplicateDate
+          ? "This dog already has a walk logged on that date"
+          : `Could not save walk: ${message}`,
+      );
     }
   });
 
@@ -146,7 +157,7 @@ export function WalkForm({
           {...register("date", { required: "Date is required" })}
         />
         {errors.date && (
-          <span className="mt-1 block text-xs text-red-700">
+          <span className="mt-1 block text-xs text-[var(--color-danger)]">
             {errors.date.message}
           </span>
         )}
@@ -170,7 +181,7 @@ export function WalkForm({
           })}
         />
         {errors.duration_minutes && (
-          <span className="mt-1 block text-xs text-red-700">
+          <span className="mt-1 block text-xs text-[var(--color-danger)]">
             {errors.duration_minutes.message}
           </span>
         )}
@@ -195,7 +206,7 @@ export function WalkForm({
           })}
         />
         {errors.distance_km && (
-          <span className="mt-1 block text-xs text-red-700">
+          <span className="mt-1 block text-xs text-[var(--color-danger)]">
             {errors.distance_km.message}
           </span>
         )}

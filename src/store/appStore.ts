@@ -130,16 +130,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   addDog: async (input) => {
-    await db.addDog(input);
-    const dogs = await db.listDogs();
-    const created =
-      dogs.find(
-        (d) =>
-          d.name === input.name &&
-          (d.breed ?? undefined) === (input.breed ?? undefined),
-      ) ?? dogs[dogs.length - 1];
+    const id = await db.addDog(input);
     set({
-      selectedDogId: created?.id ?? null,
+      selectedDogId: id,
       isCreatingDog: false,
     });
     await get().refresh();

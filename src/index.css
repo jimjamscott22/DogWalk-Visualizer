@@ -13,6 +13,9 @@
   --color-page-a: rgba(107, 143, 107, 0.18);
   --color-page-b: rgba(196, 165, 116, 0.22);
   --color-page: #f3f0e8;
+  --color-danger: #b3261e;
+  --color-danger-soft: #fbe9e7;
+  --color-danger-border: #e3b0ab;
 }
 
 [data-theme="dark"] {
@@ -27,6 +30,9 @@
   --color-page-a: rgba(107, 143, 107, 0.12);
   --color-page-b: rgba(122, 101, 72, 0.18);
   --color-page: #141814;
+  --color-danger: #e2867e;
+  --color-danger-soft: rgba(224, 134, 126, 0.15);
+  --color-danger-border: rgba(224, 134, 126, 0.35);
 }
 
 html,

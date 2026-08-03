@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildConsistencyWeeks,
   buildDistanceSeries,
   buildHealthInsight,
   computeStreak,
@@ -116,5 +117,66 @@ describe("buildDistanceSeries", () => {
     expect(series[0]?.distance_km).toBe(0);
     expect(series[1]?.distance_km).toBe(0);
     expect(series[2]).toMatchObject({ date: "2026-07-19", distance_km: 3 });
+  });
+});
+
+describe("buildConsistencyWeeks", () => {
+  it("returns the requested number of Mon-Sun weeks ending in the current week", () => {
+    // 2026-07-19 is a Sunday; its week starts Mon 2026-07-13
+    const result = buildConsistencyWeeks([], null, 3, "2026-07-19");
+    expect(result).toHaveLength(3);
+    expect(result.map((w) => w.weekStart)).toEqual([
+      "2026-06-29",
+      "2026-07-06",
+      "2026-07-13",
+    ]);
+    expect(result[2]?.days).toHaveLength(7);
+    expect(result[2]?.days[0]?.date).toBe("2026-07-13");
+    expect(result[2]?.days[6]?.date).toBe("2026-07-19");
+  });
+
+  it("marks days after asOf as future and does not count them", () => {
+    // asOf is Wednesday 2026-07-15; Thu-Sun of that week are future
+    const result = buildConsistencyWeeks(
+      [walk({ date: "2026-07-14", distance_km: 2 })],
+      null,
+      1,
+      "2026-07-15",
+    );
+    const week = result[0]!;
+    expect(week.days[1]).toMatchObject({ date: "2026-07-14", walked: true });
+    expect(week.days[2]).toMatchObject({
+      date: "2026-07-15",
+      isToday: true,
+      isFuture: false,
+    });
+    expect(week.days[3]).toMatchObject({ date: "2026-07-16", isFuture: true });
+    expect(week.totalWalks).toBe(1);
+  });
+
+  it("flags a week as goal-met once walks or distance reach the target", () => {
+    const walks = [
+      walk({ id: 1, date: "2026-07-13", distance_km: 2 }),
+      walk({ id: 2, date: "2026-07-14", distance_km: 2 }),
+      walk({ id: 3, date: "2026-07-15", distance_km: 2 }),
+    ];
+    const met = buildConsistencyWeeks(
+      walks,
+      { target_walks_per_week: 3, target_distance_weekly: null },
+      1,
+      "2026-07-19",
+    );
+    expect(met[0]?.goalMet).toBe(true);
+
+    const notMet = buildConsistencyWeeks(
+      walks,
+      { target_walks_per_week: 5, target_distance_weekly: null },
+      1,
+      "2026-07-19",
+    );
+    expect(notMet[0]?.goalMet).toBe(false);
+
+    const noGoal = buildConsistencyWeeks(walks, null, 1, "2026-07-19");
+    expect(noGoal[0]?.goalMet).toBe(false);
   });
 });

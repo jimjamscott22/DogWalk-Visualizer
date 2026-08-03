@@ -115,7 +115,7 @@ export function SettingsPanel({
           type="button"
           disabled={busy}
           onClick={() => void handleClear()}
-          className="rounded-lg px-4 py-2.5 text-sm font-medium text-red-800 ring-1 ring-red-200 hover:bg-red-50 disabled:opacity-60"
+          className="rounded-lg px-4 py-2.5 text-sm font-medium text-[var(--color-danger)] ring-1 ring-[var(--color-danger-border)] hover:bg-[var(--color-danger-soft)] disabled:opacity-60"
         >
           Clear all data
         </button>

@@ -228,7 +228,7 @@ export function DogProfileForm({
           })}
         />
         {errors.name && (
-          <span className="mt-1 block text-xs text-red-700">
+          <span className="mt-1 block text-xs text-[var(--color-danger)]">
             {errors.name.message}
           </span>
         )}
@@ -259,7 +259,7 @@ export function DogProfileForm({
           })}
         />
         {errors.weight_kg && (
-          <span className="mt-1 block text-xs text-red-700">
+          <span className="mt-1 block text-xs text-[var(--color-danger)]">
             {errors.weight_kg.message}
           </span>
         )}
