@@ -40,3 +40,6 @@ dogwalk-backup*.json
 
 # SDD scratch workspace (subagent-driven-development skill)
 .superpowers/
+
+# Local isolated feature worktrees
+.worktrees/
