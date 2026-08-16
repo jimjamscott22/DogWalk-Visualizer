@@ -45,3 +45,4 @@ dogwalk-backup*.json
 .worktrees/
 /graphify-out/
 src-tauri/Cargo.toml
+docs/SECURITY.md
