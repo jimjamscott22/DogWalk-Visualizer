@@ -85,15 +85,17 @@ export async function createWalk(input: CreateWalkInput): Promise<void> {
   const db = await getDb();
   // One walk per dog per day (UNIQUE). Upsert so Quick Add updates today's entry.
   await db.execute(
-    `INSERT INTO walks (dog_id, date, duration_minutes, distance_km, notes)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO walks (dog_id, date, start_time, duration_minutes, distance_km, notes)
+     VALUES ($1, $2, $3, $4, $5, $6)
      ON CONFLICT(dog_id, date) DO UPDATE SET
+       start_time = excluded.start_time,
        duration_minutes = excluded.duration_minutes,
        distance_km = excluded.distance_km,
        notes = excluded.notes`,
     [
       input.dog_id,
       input.date,
+      input.start_time ?? null,
       input.duration_minutes ?? null,
       input.distance_km ?? 0,
       input.notes ?? null,
@@ -106,12 +108,14 @@ export async function updateWalk(input: UpdateWalkInput): Promise<void> {
   await db.execute(
     `UPDATE walks
      SET date = $1,
-         duration_minutes = $2,
-         distance_km = $3,
-         notes = $4
-     WHERE id = $5`,
+         start_time = $2,
+         duration_minutes = $3,
+         distance_km = $4,
+         notes = $5
+     WHERE id = $6`,
     [
       input.date,
+      input.start_time ?? null,
       input.duration_minutes ?? null,
       input.distance_km,
       input.notes ?? null,

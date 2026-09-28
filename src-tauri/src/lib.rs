@@ -49,6 +49,11 @@ const MIGRATION_V2_SQL: &str = r#"
                 ALTER TABLE dogs ADD COLUMN photo TEXT;
             "#;
 
+/// V3: optional local time of day ("HH:MM") the walk started.
+const MIGRATION_V3_SQL: &str = r#"
+                ALTER TABLE walks ADD COLUMN start_time TEXT;
+            "#;
+
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {name}! Welcome to Dog Walk Tracker.")
@@ -73,6 +78,12 @@ pub fn run() {
             version: 2,
             description: "add_dog_photo_column",
             sql: MIGRATION_V2_SQL,
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 3,
+            description: "add_walk_start_time_column",
+            sql: MIGRATION_V3_SQL,
             kind: MigrationKind::Up,
         },
     ];
@@ -123,6 +134,15 @@ mod tests {
     fn migration_v2_uses_safe_ddl_patterns() {
         let sql = MIGRATION_V2_SQL.to_uppercase();
         assert!(sql.contains("ALTER TABLE DOGS ADD COLUMN PHOTO TEXT"));
+        assert!(!sql.contains("DROP TABLE"));
+        assert!(!sql.contains(";--"));
+        assert!(!sql.contains("ATTACH DATABASE"));
+    }
+
+    #[test]
+    fn migration_v3_uses_safe_ddl_patterns() {
+        let sql = MIGRATION_V3_SQL.to_uppercase();
+        assert!(sql.contains("ALTER TABLE WALKS ADD COLUMN START_TIME TEXT"));
         assert!(!sql.contains("DROP TABLE"));
         assert!(!sql.contains(";--"));
         assert!(!sql.contains("ATTACH DATABASE"));
