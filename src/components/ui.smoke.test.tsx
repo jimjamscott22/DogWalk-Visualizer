@@ -121,6 +121,7 @@ describe("WalkForm", () => {
           id: 1,
           dog_id: 1,
           date: "2026-07-19",
+          start_time: null,
           duration_minutes: 30,
           distance_km: 1.609344,
           notes: null,
@@ -139,6 +140,76 @@ describe("WalkForm", () => {
     expect(Number(distanceInput.value)).toBeCloseTo(1, 5);
   });
 
+  it("pre-fills the start time when editing a walk that has one", () => {
+    render(
+      <WalkForm
+        dogId={1}
+        unitSystem="us"
+        editing={{
+          id: 1,
+          dog_id: 1,
+          date: "2026-07-19",
+          start_time: "07:30",
+          duration_minutes: 30,
+          distance_km: 1.609344,
+          notes: null,
+          created_at: "2026-07-19T00:00:00Z",
+        }}
+        onCreate={vi.fn()}
+        onUpdate={vi.fn()}
+        onCancelEdit={vi.fn()}
+        onStatus={vi.fn()}
+      />,
+    );
+
+    expect(
+      (screen.getByLabelText(/start time/i) as HTMLInputElement).value,
+    ).toBe("07:30");
+  });
+
+  it("includes the entered start time when creating a walk", async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    render(
+      <WalkForm
+        dogId={1}
+        editing={null}
+        unitSystem="us"
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+        onCancelEdit={vi.fn()}
+        onStatus={vi.fn()}
+      />,
+    );
+
+    await user.type(screen.getByLabelText(/start time/i), "0730AM");
+    await user.click(screen.getByRole("button", { name: /log walk/i }));
+
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    expect(onCreate.mock.calls[0][0].start_time).toBe("07:30");
+  });
+
+  it("omits start_time when the field is left blank", async () => {
+    const user = userEvent.setup();
+    const onCreate = vi.fn().mockResolvedValue(undefined);
+    render(
+      <WalkForm
+        dogId={1}
+        editing={null}
+        unitSystem="us"
+        onCreate={onCreate}
+        onUpdate={vi.fn()}
+        onCancelEdit={vi.fn()}
+        onStatus={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /log walk/i }));
+
+    expect(onCreate).toHaveBeenCalledTimes(1);
+    expect(onCreate.mock.calls[0][0].start_time).toBeUndefined();
+  });
+
   it("rounds a non-step-clean converted distance so the edit form can still be submitted", async () => {
     const user = userEvent.setup();
     const onUpdate = vi.fn().mockResolvedValue(undefined);
@@ -150,6 +221,7 @@ describe("WalkForm", () => {
           id: 1,
           dog_id: 1,
           date: "2026-07-19",
+          start_time: null,
           duration_minutes: 30,
           distance_km: 5,
           notes: null,
@@ -248,6 +320,7 @@ function walk(partial: Partial<Walk> & Pick<Walk, "date" | "distance_km">): Walk
     id: partial.id ?? 1,
     dog_id: partial.dog_id ?? 1,
     date: partial.date,
+    start_time: partial.start_time ?? null,
     duration_minutes: partial.duration_minutes ?? 30,
     distance_km: partial.distance_km,
     notes: partial.notes ?? null,

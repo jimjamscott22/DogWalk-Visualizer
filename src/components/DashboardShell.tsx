@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAppStore } from "../store/appStore";
 import { buildConsistencyWeeks, buildDistanceSeries, todayIso } from "../lib/stats";
+import { formatTimeOfDay } from "../lib/time";
 import {
   distanceUnitLabel,
   getStoredUnitSystem,
@@ -316,6 +317,9 @@ export function DashboardShell() {
                     {walk.date}
                   </p>
                   <p className="break-words text-[var(--color-bark)]/70">
+                    {formatTimeOfDay(walk.start_time)
+                      ? `${formatTimeOfDay(walk.start_time)} · `
+                      : ""}
                     {walk.duration_minutes ?? "—"} min ·{" "}
                     {toDisplayDistance(walk.distance_km, unitSystem).toFixed(1)}{" "}
                     {distanceUnitLabel(unitSystem)}

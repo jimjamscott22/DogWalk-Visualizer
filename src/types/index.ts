@@ -19,6 +19,8 @@ export interface Walk {
   id: number;
   dog_id: number;
   date: string;
+  /** Local time the walk started, as "HH:MM" (24-hour), or null if not recorded. */
+  start_time: string | null;
   duration_minutes: number | null;
   distance_km: number;
   notes: string | null;
@@ -36,6 +38,7 @@ export interface Goal {
 export interface CreateWalkInput {
   dog_id: number;
   date: string;
+  start_time?: string;
   duration_minutes?: number;
   distance_km?: number;
   notes?: string;
@@ -44,6 +47,7 @@ export interface CreateWalkInput {
 export interface UpdateWalkInput {
   id: number;
   date: string;
+  start_time?: string;
   duration_minutes?: number;
   distance_km: number;
   notes?: string;

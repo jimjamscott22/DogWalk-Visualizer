@@ -32,6 +32,7 @@ interface AppState {
   addWalk: (input: {
     dog_id: number;
     date: string;
+    start_time?: string;
     duration_minutes?: number;
     distance_km?: number;
     notes?: string;
@@ -39,6 +40,7 @@ interface AppState {
   updateWalk: (input: {
     id: number;
     date: string;
+    start_time?: string;
     duration_minutes?: number;
     distance_km: number;
     notes?: string;

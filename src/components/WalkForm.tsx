@@ -6,6 +6,7 @@ import { toDisplayDistance, toStorageDistance, distanceUnitLabel, type UnitSyste
 
 export interface WalkFormValues {
   date: string;
+  start_time: string;
   duration_minutes: string;
   distance_km: string;
   notes: string;
@@ -18,6 +19,7 @@ interface WalkFormProps {
   onCreate: (values: {
     dog_id: number;
     date: string;
+    start_time?: string;
     duration_minutes?: number;
     distance_km: number;
     notes?: string;
@@ -25,6 +27,7 @@ interface WalkFormProps {
   onUpdate: (values: {
     id: number;
     date: string;
+    start_time?: string;
     duration_minutes?: number;
     distance_km: number;
     notes?: string;
@@ -50,6 +53,7 @@ export function WalkForm({
   } = useForm<WalkFormValues>({
     defaultValues: {
       date: todayIso(),
+      start_time: "",
       duration_minutes: "30",
       distance_km: "1.0",
       notes: "",
@@ -60,6 +64,7 @@ export function WalkForm({
     if (editing) {
       reset({
         date: editing.date,
+        start_time: editing.start_time ?? "",
         duration_minutes:
           editing.duration_minutes != null
             ? String(editing.duration_minutes)
@@ -70,6 +75,7 @@ export function WalkForm({
     } else {
       reset({
         date: todayIso(),
+        start_time: "",
         duration_minutes: "30",
         distance_km: "1.0",
         notes: "",
@@ -84,6 +90,7 @@ export function WalkForm({
     }
 
     const distance_km = toStorageDistance(Number(values.distance_km), unitSystem);
+    const start_time = values.start_time.trim() || undefined;
     const durationRaw = values.duration_minutes.trim();
     const duration_minutes = durationRaw
       ? Number(durationRaw)
@@ -95,6 +102,7 @@ export function WalkForm({
         await onUpdate({
           id: editing.id,
           date: values.date,
+          start_time,
           duration_minutes,
           distance_km,
           notes,
@@ -105,6 +113,7 @@ export function WalkForm({
         await onCreate({
           dog_id: dogId,
           date: values.date,
+          start_time,
           duration_minutes,
           distance_km,
           notes,
@@ -112,6 +121,7 @@ export function WalkForm({
         onStatus("Walk logged");
         reset({
           date: todayIso(),
+          start_time: "",
           duration_minutes: "30",
           distance_km: "1.0",
           notes: "",
@@ -161,6 +171,15 @@ export function WalkForm({
             {errors.date.message}
           </span>
         )}
+      </label>
+
+      <label className="block text-sm">
+        Start time
+        <input
+          type="time"
+          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
+          {...register("start_time")}
+        />
       </label>
 
       <label className="block text-sm">
