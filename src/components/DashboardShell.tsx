@@ -163,7 +163,7 @@ export function DashboardShell() {
           )}
         </div>
 
-        <DogWalkBanner compact />
+        <DogWalkBanner />
 
         <nav
           aria-label="Dogs"
