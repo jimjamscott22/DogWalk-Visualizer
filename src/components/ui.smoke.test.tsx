@@ -11,11 +11,11 @@ import { buildConsistencyWeeks } from "../lib/stats";
 import type { Walk } from "../types";
 
 describe("DogWalkBanner", () => {
-  it("renders the generated dog-walking artwork with descriptive alt text", () => {
+  it("renders the Dozer and Ziggy artwork with descriptive alt text", () => {
     render(<DogWalkBanner />);
 
     expect(
-      screen.getByRole("img", { name: /two dogs walking together/i }),
+      screen.getByRole("img", { name: /Dozer the dog and Ziggy the kitten/i }),
     ).toHaveAttribute("src", "/dogs-walking-neighborhood.png");
   });
 });

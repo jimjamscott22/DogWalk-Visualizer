@@ -11,8 +11,8 @@ export function DogWalkBanner({ compact = false }: DogWalkBannerProps) {
     >
       <img
         src="/dogs-walking-neighborhood.png"
-        alt="Two dogs walking together down a quiet, tree-lined neighborhood street"
-        className="dog-walk-banner-image h-full w-full object-cover object-[center_62%]"
+        alt="Dozer the dog and Ziggy the kitten together on a neighborhood path at sunset"
+        className="dog-walk-banner-image h-full w-full object-cover object-[30%_20%]"
         decoding="async"
       />
     </figure>
