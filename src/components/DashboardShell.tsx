@@ -11,6 +11,7 @@ import {
 } from "../lib/units";
 import type { Walk } from "../types";
 import { ConsistencyGrid } from "./ConsistencyGrid";
+import { CareTasksPanel } from "./CareTasksPanel";
 import { DogWalkBanner } from "./DogWalkBanner";
 import { DogProfileForm } from "./DogProfileForm";
 import { HealthInsights } from "./HealthInsights";
@@ -25,6 +26,7 @@ export function DashboardShell() {
     error,
     dogs,
     walks,
+    careTasks,
     goal,
     selectedDogId,
     isCreatingDog,
@@ -38,6 +40,11 @@ export function DashboardShell() {
     removeWalk,
     saveGoal,
     clearAllData,
+    addCareTask,
+    updateCareTask,
+    completeCareTask,
+    reopenCareTask,
+    removeCareTask,
   } = useAppStore();
 
   const [status, setStatus] = useState<string | null>(null);
@@ -210,6 +217,19 @@ export function DashboardShell() {
           goal={goal}
           walkedToday={walkedToday}
           unitSystem={unitSystem}
+        />
+      )}
+
+      {!isCreatingDog && selectedDog && (
+        <CareTasksPanel
+          dogId={selectedDog.id}
+          dogName={selectedDog.name}
+          tasks={careTasks}
+          onCreate={addCareTask}
+          onUpdate={updateCareTask}
+          onComplete={completeCareTask}
+          onReopen={reopenCareTask}
+          onDelete={removeCareTask}
         />
       )}
 

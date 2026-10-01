@@ -35,6 +35,32 @@ export interface Goal {
   updated_at: string;
 }
 
+export interface CareTask {
+  id: number;
+  dog_id: number;
+  name: string;
+  /** Local calendar date, YYYY-MM-DD. */
+  due_date: string;
+  notes: string | null;
+  repeat_days: number | null;
+  last_completed_at: string | null;
+  /** Set only when a one-time task is finished. */
+  completed_at: string | null;
+  created_at: string;
+}
+
+export interface CreateCareTaskInput {
+  dog_id: number;
+  name: string;
+  due_date: string;
+  notes?: string | null;
+  repeat_days?: number | null;
+}
+
+export interface UpdateCareTaskInput extends CreateCareTaskInput {
+  id: number;
+}
+
 export interface CreateWalkInput {
   dog_id: number;
   date: string;

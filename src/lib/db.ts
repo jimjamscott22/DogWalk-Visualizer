@@ -1,19 +1,24 @@
 import Database from "@tauri-apps/plugin-sql";
 import type {
+  CareTask,
+  CreateCareTaskInput,
   CreateDogInput,
   CreateWalkInput,
   Dog,
   Goal,
   UpdateDogInput,
+  UpdateCareTaskInput,
   UpdateWalkInput,
   Walk,
 } from "../types";
+import { getCareTaskCompletion, normalizeCareTaskInput } from "./careTasks";
 
 export interface BackupPayload {
   exported_at: string;
   dogs: Dog[];
   walks: Walk[];
   goals: Goal[];
+  care_tasks: CareTask[];
 }
 
 export interface UpsertGoalInput {
@@ -168,22 +173,91 @@ export async function upsertGoal(input: UpsertGoalInput): Promise<void> {
   );
 }
 
+export async function listCareTasks(dogId?: number): Promise<CareTask[]> {
+  const db = await getDb();
+  return dogId == null
+    ? db.select<CareTask[]>("SELECT * FROM care_tasks ORDER BY due_date ASC, id ASC")
+    : db.select<CareTask[]>(
+        "SELECT * FROM care_tasks WHERE dog_id = $1 ORDER BY due_date ASC, id ASC",
+        [dogId],
+      );
+}
+
+export async function createCareTask(input: CreateCareTaskInput): Promise<void> {
+  const values = normalizeCareTaskInput(input);
+  const db = await getDb();
+  await db.execute(
+    `INSERT INTO care_tasks (dog_id, name, due_date, notes, repeat_days)
+     VALUES ($1, $2, $3, $4, $5)`,
+    [values.dog_id, values.name, values.due_date, values.notes, values.repeat_days],
+  );
+}
+
+export async function updateCareTask(input: UpdateCareTaskInput): Promise<void> {
+  const values = normalizeCareTaskInput(input);
+  const db = await getDb();
+  const result = await db.execute(
+    `UPDATE care_tasks SET name = $1, due_date = $2, notes = $3, repeat_days = $4
+     WHERE id = $5 AND dog_id = $6 AND completed_at IS NULL`,
+    [values.name, values.due_date, values.notes, values.repeat_days, input.id, input.dog_id],
+  );
+  if (result.rowsAffected !== 1) throw new Error("Task was removed or completed; reload and try again");
+}
+
+export async function completeCareTask(id: number, dogId: number): Promise<void> {
+  const db = await getDb();
+  const tasks = await db.select<CareTask[]>(
+    "SELECT * FROM care_tasks WHERE id = $1 AND dog_id = $2", [id, dogId],
+  );
+  const task = tasks[0];
+  if (!task) throw new Error("Task no longer exists for this dog");
+  const completion = getCareTaskCompletion(task);
+  // Compare the schedule we read so concurrent completion/edit cannot overwrite it.
+  const result = await db.execute(
+    `UPDATE care_tasks SET due_date = $1, last_completed_at = $2, completed_at = $3
+     WHERE id = $4 AND dog_id = $5 AND completed_at IS NULL
+       AND due_date = $6 AND repeat_days IS $7 AND last_completed_at IS $8`,
+    [completion.due_date, completion.last_completed_at, completion.completed_at,
+      id, dogId, task.due_date, task.repeat_days, task.last_completed_at],
+  );
+  if (result.rowsAffected !== 1) throw new Error("Task changed while completing it; reload and try again");
+}
+
+export async function reopenCareTask(id: number, dogId: number): Promise<void> {
+  const db = await getDb();
+  const result = await db.execute(
+    `UPDATE care_tasks SET completed_at = NULL
+     WHERE id = $1 AND dog_id = $2 AND completed_at IS NOT NULL AND repeat_days IS NULL`,
+    [id, dogId],
+  );
+  if (result.rowsAffected !== 1) throw new Error("Only a finished one-time task can be reopened");
+}
+
+export async function deleteCareTask(id: number, dogId: number): Promise<void> {
+  const db = await getDb();
+  const result = await db.execute("DELETE FROM care_tasks WHERE id = $1 AND dog_id = $2", [id, dogId]);
+  if (result.rowsAffected !== 1) throw new Error("Task no longer exists for this dog");
+}
+
 export async function exportBackup(): Promise<BackupPayload> {
-  const [dogs, walks, goals] = await Promise.all([
+  const [dogs, walks, goals, careTasks] = await Promise.all([
     listDogs(),
     listWalks(),
     listGoals(),
+    listCareTasks(),
   ]);
   return {
     exported_at: new Date().toISOString(),
     dogs,
     walks,
     goals,
+    care_tasks: careTasks,
   };
 }
 
 export async function clearAllData(): Promise<void> {
   const db = await getDb();
+  await db.execute("DELETE FROM care_tasks");
   await db.execute("DELETE FROM walks");
   await db.execute("DELETE FROM goals");
   await db.execute("DELETE FROM dogs");

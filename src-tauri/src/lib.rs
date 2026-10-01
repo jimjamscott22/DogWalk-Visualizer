@@ -54,6 +54,26 @@ const MIGRATION_V3_SQL: &str = r#"
                 ALTER TABLE walks ADD COLUMN start_time TEXT;
             "#;
 
+/// V4: local care schedules and the most recent completion per task.
+const MIGRATION_V4_SQL: &str = r#"
+                CREATE TABLE IF NOT EXISTS care_tasks (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    dog_id INTEGER NOT NULL,
+                    name TEXT NOT NULL CHECK(length(trim(name)) > 0),
+                    due_date TEXT NOT NULL,
+                    notes TEXT,
+                    repeat_days INTEGER CHECK(repeat_days IS NULL OR
+                        (typeof(repeat_days) = 'integer' AND repeat_days > 0)),
+                    last_completed_at TEXT,
+                    completed_at TEXT,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (dog_id) REFERENCES dogs(id),
+                    CHECK(completed_at IS NULL OR repeat_days IS NULL)
+                );
+                CREATE INDEX IF NOT EXISTS idx_care_tasks_dog_due
+                    ON care_tasks(dog_id, due_date);
+            "#;
+
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {name}! Welcome to Dog Walk Tracker.")
@@ -84,6 +104,12 @@ pub fn run() {
             version: 3,
             description: "add_walk_start_time_column",
             sql: MIGRATION_V3_SQL,
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 4,
+            description: "create_care_tasks",
+            sql: MIGRATION_V4_SQL,
             kind: MigrationKind::Up,
         },
     ];
@@ -146,5 +172,16 @@ mod tests {
         assert!(!sql.contains("DROP TABLE"));
         assert!(!sql.contains(";--"));
         assert!(!sql.contains("ATTACH DATABASE"));
+    }
+
+    #[test]
+    fn migration_v4_uses_safe_ddl_patterns() {
+        let sql = MIGRATION_V4_SQL.to_uppercase();
+        assert!(sql.contains("CREATE TABLE IF NOT EXISTS CARE_TASKS"));
+        assert!(sql.contains("FOREIGN KEY (DOG_ID) REFERENCES DOGS(ID)"));
+        assert!(sql.contains("ON CARE_TASKS(DOG_ID, DUE_DATE)"));
+        assert!(!sql.contains("DROP TABLE"));
+        assert!(!sql.contains("ATTACH DATABASE"));
+        assert!(!sql.contains(";--"));
     }
 }

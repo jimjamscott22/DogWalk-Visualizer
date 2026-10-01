@@ -61,6 +61,14 @@ body {
   background: var(--color-mist);
 }
 
+.care-tasks-panel {
+  color-scheme: light;
+}
+
+[data-theme="dark"] .care-tasks-panel {
+  color-scheme: dark;
+}
+
 .dog-walk-banner-image {
   transition: filter 200ms ease;
 }

@@ -55,7 +55,7 @@ export function SettingsPanel({
 
   const handleClear = async () => {
     const confirmed = await ask(
-      "This permanently deletes all dogs, walks, and goals on this device. Continue?",
+      "This permanently deletes all dogs, walks, goals, and care tasks on this device. Continue?",
       {
         title: "Clear all data",
         kind: "warning",

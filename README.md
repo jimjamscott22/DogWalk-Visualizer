@@ -172,5 +172,8 @@ CHANGELOG.md          Version history
 - Dog profiles (name, breed, weight)
 - Walk CRUD with validation
 - Weekly progress, streak, goals, 14-day chart
+- Per-dog care tasks with due dates, optional repeats, and due/overdue reminders inside the app
 - Dark mode, JSON backup, clear-all-data
 - Local SQLite only (no cloud)
+
+Use **Care tasks** below the weekly stats to schedule a bath, nail trim, tooth brushing, or a custom chore. Choose a due date and optionally enter a repeat interval in days. **Mark done** schedules a repeating task from the day you complete it; one-time tasks move into the collapsed **Done** list and can be reopened. The app keeps the most recent completion date, and JSON backups include care tasks for every dog.
