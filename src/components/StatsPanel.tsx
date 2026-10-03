@@ -58,7 +58,7 @@ export function StatsPanel({
   walkedToday,
   unitSystem = "us",
 }: StatsPanelProps) {
-  const insight = buildHealthInsight(stats, goal, null);
+  const insight = buildHealthInsight(stats, goal);
   const distanceUnit = distanceUnitLabel(unitSystem);
   const displayTotalDistance = toDisplayDistance(
     stats.total_distance_week,

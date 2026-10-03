@@ -73,7 +73,7 @@ describe("getDailyStats", () => {
 });
 
 describe("buildHealthInsight", () => {
-  it("computes capped progress and km per kg", () => {
+  it("computes capped progress", () => {
     const insight = buildHealthInsight(
       {
         total_walks_week: 4,
@@ -82,11 +82,9 @@ describe("buildHealthInsight", () => {
         avg_distance_week: 2,
       },
       { target_walks_per_week: 5, target_distance_weekly: 10 },
-      20,
     );
     expect(insight.walks_progress).toBeCloseTo(0.8);
     expect(insight.distance_progress).toBeCloseTo(0.8);
-    expect(insight.km_per_kg).toBeCloseTo(0.1);
   });
 
   it("returns null progress when goals unset", () => {
@@ -98,11 +96,9 @@ describe("buildHealthInsight", () => {
         avg_distance_week: 1,
       },
       null,
-      null,
     );
     expect(insight.walks_progress).toBeNull();
     expect(insight.distance_progress).toBeNull();
-    expect(insight.km_per_kg).toBeNull();
   });
 });
 

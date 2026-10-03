@@ -1,15 +1,12 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { buildHealthInsight } from "../lib/stats";
 import {
-  distancePerWeightUnitLabel,
   distanceUnitLabel,
   toDisplayDistance,
-  toDisplayDistancePerWeight,
   toStorageDistance,
   type UnitSystem,
 } from "../lib/units";
-import type { DailyStats, Goal } from "../types";
+import type { Goal } from "../types";
 
 interface GoalFormValues {
   target_walks_per_week: string;
@@ -19,9 +16,7 @@ interface GoalFormValues {
 interface HealthInsightsProps {
   dogId: number | null;
   dogName: string | null;
-  weightKg: number | null;
   goal: Goal | null;
-  stats: DailyStats;
   unitSystem?: UnitSystem;
   onSave: (input: {
     dog_id: number;
@@ -41,9 +36,7 @@ function parseOptionalPositive(raw: string): number | null | undefined {
 export function HealthInsights({
   dogId,
   dogName,
-  weightKg,
   goal,
-  stats,
   unitSystem = "us",
   onSave,
   onStatus,
@@ -72,8 +65,6 @@ export function HealthInsights({
           : "",
     });
   }, [goal, unitSystem, reset]);
-
-  const insight = buildHealthInsight(stats, goal, weightKg);
 
   const onSubmit = handleSubmit(async (values) => {
     if (dogId == null) {
@@ -124,11 +115,6 @@ export function HealthInsights({
         </h2>
         <p className="mt-1 text-sm text-[var(--color-bark)]/70">
           Targets feed the weekly progress bars above.
-          {insight.km_per_kg != null
-            ? ` Currently ~${toDisplayDistancePerWeight(insight.km_per_kg, unitSystem).toFixed(3)} ${distancePerWeightUnitLabel(unitSystem)}.`
-            : weightKg == null
-              ? ` Add weight on the dog profile for a ${distancePerWeightUnitLabel(unitSystem)} insight.`
-              : ""}
         </p>
       </div>
 

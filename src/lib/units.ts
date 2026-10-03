@@ -53,16 +53,3 @@ export function toDisplayWeight(kg: number, system: UnitSystem): number {
 export function toStorageWeight(value: number, system: UnitSystem): number {
   return system === "us" ? lbsToKg(value) : value;
 }
-
-export function toDisplayDistancePerWeight(
-  kmPerKg: number,
-  system: UnitSystem,
-): number {
-  return system === "us" ? kmPerKg * (KG_PER_LB / KM_PER_MILE) : kmPerKg;
-}
-
-export function distancePerWeightUnitLabel(
-  system: UnitSystem,
-): "mi/lb" | "km/kg" {
-  return system === "us" ? "mi/lb" : "km/kg";
-}

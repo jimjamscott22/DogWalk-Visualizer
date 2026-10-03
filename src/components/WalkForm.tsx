@@ -233,8 +233,9 @@ export function WalkForm({
 
       <label className="block text-sm">
         Notes
-        <input
-          className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
+        <textarea
+          rows={2}
+          className="mt-1 w-full resize-y rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none [field-sizing:content] focus:ring-2 focus:ring-[var(--color-leaf)]"
           {...register("notes")}
           placeholder="Optional"
         />

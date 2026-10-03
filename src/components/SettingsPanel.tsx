@@ -16,6 +16,7 @@ interface SettingsPanelProps {
   onStatus: (message: string) => void;
   unitSystem?: UnitSystem;
   onUnitSystemChange?: (system: UnitSystem) => void;
+  showClearAll?: boolean;
 }
 
 export function SettingsPanel({
@@ -23,6 +24,7 @@ export function SettingsPanel({
   onStatus,
   unitSystem = "us",
   onUnitSystemChange = () => {},
+  showClearAll = true,
 }: SettingsPanelProps) {
   const [theme, setTheme] = useState<ThemeMode>(() => {
     const mode = getStoredTheme();
@@ -86,7 +88,11 @@ export function SettingsPanel({
         Data stays on this machine. Export a JSON backup anytime.
       </p>
 
-      <div className="mt-4 grid gap-2 grid-cols-2 min-[640px]:grid-cols-4">
+      <div
+        className={`mt-4 grid gap-2 grid-cols-2 ${
+          showClearAll ? "min-[640px]:grid-cols-4" : "min-[640px]:grid-cols-3"
+        }`}
+      >
         <button
           type="button"
           disabled={busy}
@@ -111,14 +117,16 @@ export function SettingsPanel({
         >
           Backup to JSON
         </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void handleClear()}
-          className="rounded-lg px-4 py-2.5 text-sm font-medium text-[var(--color-danger)] ring-1 ring-[var(--color-danger-border)] hover:bg-[var(--color-danger-soft)] disabled:opacity-60"
-        >
-          Clear all data
-        </button>
+        {showClearAll && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void handleClear()}
+            className="rounded-lg px-4 py-2.5 text-sm font-medium text-[var(--color-danger)] ring-1 ring-[var(--color-danger-border)] hover:bg-[var(--color-danger-soft)] disabled:opacity-60"
+          >
+            Clear all data
+          </button>
+        )}
       </div>
     </section>
   );

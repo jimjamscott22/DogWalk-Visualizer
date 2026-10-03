@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ask } from "@tauri-apps/plugin-dialog";
 import { useAppStore } from "../store/appStore";
 import { buildConsistencyWeeks, buildDistanceSeries, todayIso } from "../lib/stats";
 import { formatTimeOfDay } from "../lib/time";
@@ -19,6 +20,8 @@ import { SettingsPanel } from "./SettingsPanel";
 import { StatsPanel } from "./StatsPanel";
 import { WalkChart } from "./WalkChart";
 import { WalkForm } from "./WalkForm";
+
+const STATUS_DISMISS_MS = 4000;
 
 export function DashboardShell() {
   const {
@@ -48,6 +51,13 @@ export function DashboardShell() {
   } = useAppStore();
 
   const [status, setStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (status == null) return;
+    const timer = setTimeout(() => setStatus(null), STATUS_DISMISS_MS);
+    return () => clearTimeout(timer);
+  }, [status]);
+
   const [editingWalk, setEditingWalk] = useState<Walk | null>(null);
   const [unitSystem, setUnitSystemState] = useState<UnitSystem>(() =>
     getStoredUnitSystem(),
@@ -140,6 +150,7 @@ export function DashboardShell() {
           onStatus={setStatus}
           unitSystem={unitSystem}
           onUnitSystemChange={handleUnitSystemChange}
+          showClearAll={false}
         />
       </div>
     );
@@ -302,9 +313,7 @@ export function DashboardShell() {
         <HealthInsights
           dogId={selectedDogId}
           dogName={selectedDog?.name ?? null}
-          weightKg={selectedDog?.weight_kg ?? null}
           goal={goal}
-          stats={stats}
           unitSystem={unitSystem}
           onSave={saveGoal}
           onStatus={setStatus}
@@ -356,7 +365,18 @@ export function DashboardShell() {
                   </button>
                   <button
                     type="button"
+                    aria-label={`Delete walk on ${walk.date}`}
                     onClick={async () => {
+                      const confirmed = await ask(
+                        `Permanently delete the walk on ${walk.date}?`,
+                        {
+                          title: "Delete walk",
+                          kind: "warning",
+                          okLabel: "Delete walk",
+                          cancelLabel: "Cancel",
+                        },
+                      );
+                      if (!confirmed) return;
                       try {
                         await removeWalk(walk.id);
                         if (editingWalk?.id === walk.id) setEditingWalk(null);
