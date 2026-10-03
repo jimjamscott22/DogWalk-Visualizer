@@ -15,6 +15,7 @@ import { ConsistencyGrid } from "./ConsistencyGrid";
 import { CareTasksPanel } from "./CareTasksPanel";
 import { DogWalkBanner } from "./DogWalkBanner";
 import { DogProfileForm } from "./DogProfileForm";
+import { DogSwitcher } from "./DogSwitcher";
 import { HealthInsights } from "./HealthInsights";
 import { SettingsPanel } from "./SettingsPanel";
 import { StatsPanel } from "./StatsPanel";
@@ -132,11 +133,8 @@ export function DashboardShell() {
         </header>
         <DogWalkBanner />
         <DogProfileForm
-          dogs={dogs}
           selectedDog={null}
           unitSystem={unitSystem}
-          onSelect={selectDog}
-          onStartCreate={startCreateDog}
           onAdd={async (values) => {
             await addDog(values);
           }}
@@ -183,42 +181,19 @@ export function DashboardShell() {
 
         <DogWalkBanner />
 
-        <nav
-          aria-label="Dogs"
-          className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
-        >
-          {dogs.map((dog) => (
-            <button
-              key={dog.id}
-              type="button"
-              onClick={() => {
-                selectDog(dog.id);
-                setEditingWalk(null);
-              }}
-              className={`shrink-0 rounded-lg px-3 py-1.5 text-sm ${
-                !isCreatingDog && selectedDog?.id === dog.id
-                  ? "bg-[var(--color-moss)] text-white"
-                  : "bg-[var(--color-mist)] text-[var(--color-soil)] hover:bg-[var(--color-trail)]/30"
-              }`}
-            >
-              {dog.name}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => {
-              startCreateDog();
-              setEditingWalk(null);
-            }}
-            className={`shrink-0 rounded-lg px-3 py-1.5 text-sm ${
-              isCreatingDog
-                ? "bg-[var(--color-moss)] text-white"
-                : "text-[var(--color-moss)] underline-offset-2 hover:underline"
-            }`}
-          >
-            + New dog
-          </button>
-        </nav>
+        <DogSwitcher
+          dogs={dogs}
+          selectedId={selectedDog?.id ?? null}
+          isCreating={isCreatingDog}
+          onSelect={(id) => {
+            selectDog(id);
+            setEditingWalk(null);
+          }}
+          onStartCreate={() => {
+            startCreateDog();
+            setEditingWalk(null);
+          }}
+        />
       </header>
 
       {!isCreatingDog && (
@@ -290,17 +265,8 @@ export function DashboardShell() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <DogProfileForm
-          dogs={dogs}
           selectedDog={isCreatingDog ? null : selectedDog}
           unitSystem={unitSystem}
-          onSelect={(id) => {
-            selectDog(id);
-            setEditingWalk(null);
-          }}
-          onStartCreate={() => {
-            startCreateDog();
-            setEditingWalk(null);
-          }}
           onAdd={async (values) => {
             await addDog(values);
           }}

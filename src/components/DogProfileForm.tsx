@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import type { Dog } from "../types";
 import { toDisplayWeight, toStorageWeight, weightUnitLabel, type UnitSystem } from "../lib/units";
 import { processDogPhoto } from "../lib/image";
+import { DogAvatar } from "./DogAvatar";
 
 export interface DogFormValues {
   name: string;
@@ -26,9 +27,6 @@ interface DogProfileFormProps {
     weight_kg?: number;
     photo?: string | null;
   }) => Promise<void>;
-  onSelect: (id: number) => void;
-  onStartCreate: () => void;
-  dogs: Dog[];
   onStatus: (message: string) => void;
 }
 
@@ -38,42 +36,11 @@ function parseOptionalWeight(raw: string): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
-function DogAvatar({
-  photo,
-  name,
-  sizeClass,
-}: {
-  photo: string | null;
-  name: string;
-  sizeClass: string;
-}) {
-  if (photo) {
-    return (
-      <img
-        src={photo}
-        alt={`${name} profile photo`}
-        className={`${sizeClass} shrink-0 rounded-full object-cover`}
-      />
-    );
-  }
-  return (
-    <span
-      aria-hidden="true"
-      className={`${sizeClass} flex shrink-0 items-center justify-center rounded-full bg-[var(--color-trail)]/40 font-medium uppercase text-[var(--color-soil)]`}
-    >
-      {name.trim().charAt(0) || "?"}
-    </span>
-  );
-}
-
 export function DogProfileForm({
   selectedDog,
   unitSystem = "us",
   onAdd,
   onUpdate,
-  onSelect,
-  onStartCreate,
-  dogs,
   onStatus,
 }: DogProfileFormProps) {
   const {
@@ -155,34 +122,6 @@ export function DogProfileForm({
       <h2 className="text-lg font-medium text-[var(--color-soil)]">
         Dog profile
       </h2>
-
-      <ul className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 text-sm">
-        {dogs.map((dog) => (
-          <li key={dog.id} className="shrink-0">
-            <button
-              type="button"
-              onClick={() => onSelect(dog.id)}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 ${
-                selectedDog?.id === dog.id
-                  ? "bg-[var(--color-moss)] text-white"
-                  : "bg-[var(--color-mist)] text-[var(--color-soil)] hover:bg-[var(--color-trail)]/30"
-              }`}
-            >
-              <DogAvatar photo={dog.photo} name={dog.name} sizeClass="h-5 w-5 text-[10px]" />
-              {dog.name}
-            </button>
-          </li>
-        ))}
-        <li className="shrink-0">
-          <button
-            type="button"
-            onClick={onStartCreate}
-            className="rounded-lg px-3 py-1.5 text-[var(--color-moss)] underline-offset-2 hover:underline"
-          >
-            + New
-          </button>
-        </li>
-      </ul>
 
       <div className="flex items-center gap-3 text-sm">
         <DogAvatar
