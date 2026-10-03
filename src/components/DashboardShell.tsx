@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { useAppStore } from "../store/appStore";
 import { buildConsistencyWeeks, buildDistanceSeries, todayIso } from "../lib/stats";
-import { formatTimeOfDay } from "../lib/time";
+import { formatTimeOfDay, formatWalkDate } from "../lib/time";
 import {
   distanceUnitLabel,
   getStoredUnitSystem,
@@ -309,7 +309,7 @@ export function DashboardShell() {
               >
                 <div className="min-w-0">
                   <p className="font-medium text-[var(--color-soil)]">
-                    {walk.date}
+                    {formatWalkDate(walk.date)}
                   </p>
                   <p className="break-words text-[var(--color-bark)]/70">
                     {formatTimeOfDay(walk.start_time)
