@@ -1,5 +1,31 @@
 I've read through the whole app (shell, all components, store, stats, db, units, image). Overall: it's in good shape — clean separation, parameterized SQL, tested pure stats functions, thoughtful empty states. The suggestions below are ordered by how much they'd matter to you as the app's one user: a real date bug first, then UX papercuts, then design direction.
 
+## Status (updated 2026-10-03)
+
+The items below are done unless listed under "Still to do". The UX and accessibility batch lives on the `ux-papercuts` branch and is not merged to `main` yet.
+
+### Done
+- **All three bugs:** local-date `todayIso()`, awaited delete with an error message and a friendly duplicate-date message on edit, and new-dog selection by `lastInsertId`.
+- **Consistency grid** (design direction 1): `buildConsistencyWeeks` plus `ConsistencyGrid`, 10 weeks. The distance chart stays as a secondary view.
+- **Danger colors** (design direction 2): `--color-danger`, `--color-danger-soft` and `--color-danger-border` in both themes. No raw `red-*` classes remain.
+- **Status messages auto-dismiss** after 4 seconds.
+- **Delete asks for confirmation** (Tauri `ask` dialog), as care tasks already did.
+- **Single dog switcher:** the header `DogSwitcher` now carries the avatars. The duplicate chip row in `DogProfileForm` is gone.
+- **Friendly dates** in walk history ("Sun · Aug 2") via `formatWalkDate`. Grouping by week is not done.
+- **Walk notes** is an auto-growing textarea.
+- **Onboarding** no longer shows "Clear all data".
+- **km-per-kg insight removed**, along with its unit helpers.
+- **Accessibility:** dog chips have `aria-pressed`, and a global `button:focus-visible` ring matches the input focus rings.
+
+### Still to do
+1. **One-tap "Log today's walk"** button, using the most recent walk's duration and distance. The upsert in `createWalk` already makes this safe.
+2. **Bundle a font** through `@fontsource/*` for headings (Bricolage Grotesque or Fraunces), still fully offline. The body is still Segoe UI.
+3. **Shrink the banner on the dashboard.** Keep it full-size on onboarding. Commit `1b2e96b` made the dashboard banner full-size at every width, which goes the other way, so this needs a decision first.
+4. **Streak celebration:** a `computeBestStreak` ("best: N days"), a paw emoji, and a scale-in on increment guarded by `prefers-reduced-motion`.
+5. **Group walk history by week.** Dates are friendly now, but the list is still flat.
+
+---
+
 ## Bugs worth fixing
 
 1. Evening walks get logged as "tomorrow" — stats.ts:12-14. todayIso() uses new Date().toISOString(), which is UTC. If you're anywhere west of UTC (the "us" units default suggests you are), then from ~5–8pm local time onward, todayIso() returns tomorrow's date. That skews everything downstream: the walk form's default date, the "Walked today" chip, the streak, and the chart's last day. The fix is to build the ISO string from local year/month/day (getFullYear/getMonth/getDate) while keeping the existing UTC arithmetic for date math — those are two different concerns and only the first is wrong.
