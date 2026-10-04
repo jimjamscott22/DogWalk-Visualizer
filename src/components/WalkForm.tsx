@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { todayIso } from "../lib/stats";
 import type { Walk } from "../types";
@@ -49,6 +49,7 @@ export function WalkForm({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<WalkFormValues>({
     defaultValues: {
@@ -60,6 +61,30 @@ export function WalkForm({
     },
   });
 
+  const notesRef = useRef<HTMLTextAreaElement | null>(null);
+  const notesRegistration = register("notes");
+  const notes = watch("notes");
+
+  const resizeNotes = () => {
+    const textarea = notesRef.current;
+    if (!textarea) return;
+    // Reset to the two-row baseline so deleting text also shrinks the field.
+    textarea.style.height = "auto";
+    const borderHeight = textarea.offsetHeight - textarea.clientHeight;
+    textarea.style.height = String(Math.max(
+      textarea.offsetHeight,
+      textarea.scrollHeight + borderHeight,
+    )) + "px";
+  };
+
+  useLayoutEffect(() => {
+    resizeNotes();
+  }, [notes]);
+
+  useEffect(() => {
+    window.addEventListener("resize", resizeNotes);
+    return () => window.removeEventListener("resize", resizeNotes);
+  }, []);
   useEffect(() => {
     if (editing) {
       reset({
@@ -235,8 +260,12 @@ export function WalkForm({
         Notes
         <textarea
           rows={2}
-          className="mt-1 w-full resize-y rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none [field-sizing:content] focus:ring-2 focus:ring-[var(--color-leaf)]"
-          {...register("notes")}
+          className="mt-1 w-full resize-none overflow-hidden rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
+          {...notesRegistration}
+          ref={(element) => {
+            notesRegistration.ref(element);
+            notesRef.current = element;
+          }}
           placeholder="Optional"
         />
       </label>
