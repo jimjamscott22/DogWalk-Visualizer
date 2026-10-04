@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { DashboardShell } from "./DashboardShell";
@@ -104,6 +104,45 @@ describe("DashboardShell walk deletion", () => {
   });
 });
 
+describe("DashboardShell status dismissal", () => {
+  it("restarts the four-second timer when two walks produce the same status", async () => {
+    const addWalk = vi.fn().mockResolvedValue(undefined);
+    mockStore({ walks: [], addWalk });
+    vi.useFakeTimers();
+    render(<DashboardShell />);
+
+    const form = screen.getByRole("button", { name: "Log walk" }).closest("form")!;
+
+    await act(async () => {
+      fireEvent.submit(form);
+    });
+    expect(addWalk).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("status")).toHaveTextContent("Walk logged");
+
+    act(() => {
+      vi.advanceTimersByTime(3500);
+    });
+    await act(async () => {
+      fireEvent.submit(form);
+    });
+    expect(addWalk).toHaveBeenCalledTimes(2);
+
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(screen.getByRole("status")).toHaveTextContent("Walk logged");
+
+    act(() => {
+      vi.advanceTimersByTime(3499);
+    });
+    expect(screen.getByRole("status")).toHaveTextContent("Walk logged");
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+});
 describe("DashboardShell onboarding", () => {
   it("does not offer Clear all data when there are no dogs yet", () => {
     mockStore({ dogs: [], walks: [], selectedDogId: null });

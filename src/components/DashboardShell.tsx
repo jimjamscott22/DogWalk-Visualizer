@@ -51,11 +51,15 @@ export function DashboardShell() {
     removeCareTask,
   } = useAppStore();
 
-  const [status, setStatus] = useState<string | null>(null);
+  const [status, setStatusOccurrence] = useState<{ message: string } | null>(null);
+
+  const setStatus = (message: string) => {
+    setStatusOccurrence({ message });
+  };
 
   useEffect(() => {
     if (status == null) return;
-    const timer = setTimeout(() => setStatus(null), STATUS_DISMISS_MS);
+    const timer = setTimeout(() => setStatusOccurrence(null), STATUS_DISMISS_MS);
     return () => clearTimeout(timer);
   }, [status]);
 
@@ -127,7 +131,7 @@ export function DashboardShell() {
           </p>
           {status && (
             <p className="text-sm text-[var(--color-moss)]" role="status">
-              {status}
+              {status.message}
             </p>
           )}
         </header>
@@ -174,7 +178,7 @@ export function DashboardShell() {
               className="max-w-xs text-sm text-[var(--color-moss)] sm:text-right"
               role="status"
             >
-              {status}
+              {status.message}
             </p>
           )}
         </div>
