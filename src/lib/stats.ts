@@ -73,14 +73,12 @@ export interface HealthInsight {
   avg_distance_week: number;
   walks_progress: number | null;
   distance_progress: number | null;
-  km_per_kg: number | null;
   summary: string;
 }
 
 export function buildHealthInsight(
   stats: DailyStats,
   goal: { target_distance_weekly: number | null; target_walks_per_week: number | null } | null,
-  weightKg: number | null,
 ): HealthInsight {
   const walks_progress =
     goal?.target_walks_per_week != null && goal.target_walks_per_week > 0
@@ -91,19 +89,11 @@ export function buildHealthInsight(
       ? Math.min(1, stats.total_distance_week / goal.target_distance_weekly)
       : null;
 
-  const km_per_kg =
-    weightKg != null && weightKg > 0 && stats.avg_distance_week > 0
-      ? stats.avg_distance_week / weightKg
-      : null;
-
   let summary = "Log walks this week to unlock health insights.";
   if (stats.total_walks_week > 0) {
     const parts = [
       `Avg ${stats.avg_distance_week.toFixed(1)} km per walk this week`,
     ];
-    if (km_per_kg != null) {
-      parts.push(`${km_per_kg.toFixed(3)} km per kg body weight`);
-    }
     if (walks_progress != null && goal?.target_walks_per_week) {
       parts.push(
         `${stats.total_walks_week}/${goal.target_walks_per_week} weekly walks`,
@@ -121,7 +111,6 @@ export function buildHealthInsight(
     avg_distance_week: stats.avg_distance_week,
     walks_progress,
     distance_progress,
-    km_per_kg,
     summary,
   };
 }

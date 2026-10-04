@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { StatsPanel } from "./StatsPanel";
 import { WalkForm } from "./WalkForm";
 import { DogProfileForm } from "./DogProfileForm";
+import { DogSwitcher } from "./DogSwitcher";
 import { SettingsPanel } from "./SettingsPanel";
 import { DogWalkBanner } from "./DogWalkBanner";
 import { ConsistencyGrid } from "./ConsistencyGrid";
@@ -251,11 +252,8 @@ describe("DogProfileForm", () => {
     const onAdd = vi.fn().mockResolvedValue(undefined);
     render(
       <DogProfileForm
-        dogs={[]}
         selectedDog={null}
         unitSystem="us"
-        onSelect={vi.fn()}
-        onStartCreate={vi.fn()}
         onAdd={onAdd}
         onUpdate={vi.fn()}
         onStatus={vi.fn()}
@@ -270,48 +268,88 @@ describe("DogProfileForm", () => {
     expect(onAdd.mock.calls[0][0].weight_kg).toBeCloseTo(19.958, 3);
   });
 
+});
+
+describe("DogSwitcher", () => {
   const dogBase = {
     user_id: null,
     breed: null,
     weight_kg: null,
     created_at: "2026-07-19T00:00:00Z",
   };
+  const noop = () => {};
 
-  it("shows a photo avatar in the selector chip when the dog has one", () => {
+  it("shows a photo avatar in the chip when the dog has one", () => {
     const photo = "data:image/jpeg;base64,abc123";
     render(
-      <DogProfileForm
+      <DogSwitcher
         dogs={[{ ...dogBase, id: 1, name: "Mochi", photo }]}
-        selectedDog={null}
-        onSelect={vi.fn()}
-        onStartCreate={vi.fn()}
-        onAdd={vi.fn()}
-        onUpdate={vi.fn()}
-        onStatus={vi.fn()}
+        selectedId={null}
+        isCreating={false}
+        onSelect={noop}
+        onStartCreate={noop}
       />,
     );
 
-    expect(
-      screen.getByRole("img", { name: /mochi profile photo/i }),
-    ).toHaveAttribute("src", photo);
+    const chip = screen.getByRole("button", { name: "Mochi" });
+    expect(chip.querySelector("img")).toHaveAttribute("src", photo);
   });
 
   it("falls back to the dog's initial in the chip when there is no photo", () => {
     render(
-      <DogProfileForm
+      <DogSwitcher
         dogs={[{ ...dogBase, id: 1, name: "Mochi", photo: null }]}
-        selectedDog={null}
-        onSelect={vi.fn()}
-        onStartCreate={vi.fn()}
-        onAdd={vi.fn()}
-        onUpdate={vi.fn()}
-        onStatus={vi.fn()}
+        selectedId={null}
+        isCreating={false}
+        onSelect={noop}
+        onStartCreate={noop}
       />,
     );
 
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
-    const chip = screen.getByRole("button", { name: /mochi/i });
-    expect(chip.textContent).toContain("M");
+    expect(screen.getByRole("button", { name: /mochi/i }).textContent).toContain("M");
+  });
+
+  it("marks the selected dog as pressed and calls back on click", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    const onStartCreate = vi.fn();
+    render(
+      <DogSwitcher
+        dogs={[
+          { ...dogBase, id: 1, name: "Mochi", photo: null },
+          { ...dogBase, id: 2, name: "Pip", photo: null },
+        ]}
+        selectedId={1}
+        isCreating={false}
+        onSelect={onSelect}
+        onStartCreate={onStartCreate}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Mochi" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Pip" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "+ New dog" })).toHaveAttribute("aria-pressed", "false");
+
+    await user.click(screen.getByRole("button", { name: "Pip" }));
+    expect(onSelect).toHaveBeenCalledWith(2);
+    await user.click(screen.getByRole("button", { name: "+ New dog" }));
+    expect(onStartCreate).toHaveBeenCalledOnce();
+  });
+
+  it("presses only '+ New dog' while creating", () => {
+    render(
+      <DogSwitcher
+        dogs={[{ ...dogBase, id: 1, name: "Mochi", photo: null }]}
+        selectedId={1}
+        isCreating
+        onSelect={noop}
+        onStartCreate={noop}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Mochi" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "+ New dog" })).toHaveAttribute("aria-pressed", "true");
   });
 });
 
@@ -370,5 +408,15 @@ describe("SettingsPanel", () => {
 
     await user.click(screen.getByRole("button", { name: /use metric units/i }));
     expect(onUnitSystemChange).toHaveBeenCalledWith("metric");
+  });
+
+  it("shows Clear all data by default and hides it when showClearAll is false", () => {
+    const props = { onClearAll: vi.fn(), onStatus: vi.fn() };
+    const { rerender } = render(<SettingsPanel {...props} />);
+    expect(screen.getByRole("button", { name: /clear all data/i })).toBeInTheDocument();
+
+    rerender(<SettingsPanel {...props} showClearAll={false} />);
+    expect(screen.queryByRole("button", { name: /clear all data/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /backup to json/i })).toBeInTheDocument();
   });
 });

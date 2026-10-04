@@ -57,6 +57,12 @@ body {
   min-width: 0;
 }
 
+/* Keyboard focus ring for buttons, matching the ring on text inputs. */
+button:focus-visible {
+  outline: 2px solid var(--color-leaf);
+  outline-offset: 2px;
+}
+
 .dog-walk-banner {
   background: var(--color-mist);
 }

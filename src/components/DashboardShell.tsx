@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ask } from "@tauri-apps/plugin-dialog";
 import { useAppStore } from "../store/appStore";
 import { buildConsistencyWeeks, buildDistanceSeries, todayIso } from "../lib/stats";
-import { formatTimeOfDay } from "../lib/time";
+import { formatTimeOfDay, formatWalkDate } from "../lib/time";
 import {
   distanceUnitLabel,
   getStoredUnitSystem,
@@ -14,11 +15,14 @@ import { ConsistencyGrid } from "./ConsistencyGrid";
 import { CareTasksPanel } from "./CareTasksPanel";
 import { DogWalkBanner } from "./DogWalkBanner";
 import { DogProfileForm } from "./DogProfileForm";
+import { DogSwitcher } from "./DogSwitcher";
 import { HealthInsights } from "./HealthInsights";
 import { SettingsPanel } from "./SettingsPanel";
 import { StatsPanel } from "./StatsPanel";
 import { WalkChart } from "./WalkChart";
 import { WalkForm } from "./WalkForm";
+
+const STATUS_DISMISS_MS = 4000;
 
 export function DashboardShell() {
   const {
@@ -47,7 +51,18 @@ export function DashboardShell() {
     removeCareTask,
   } = useAppStore();
 
-  const [status, setStatus] = useState<string | null>(null);
+  const [status, setStatusOccurrence] = useState<{ message: string } | null>(null);
+
+  const setStatus = (message: string) => {
+    setStatusOccurrence({ message });
+  };
+
+  useEffect(() => {
+    if (status == null) return;
+    const timer = setTimeout(() => setStatusOccurrence(null), STATUS_DISMISS_MS);
+    return () => clearTimeout(timer);
+  }, [status]);
+
   const [editingWalk, setEditingWalk] = useState<Walk | null>(null);
   const [unitSystem, setUnitSystemState] = useState<UnitSystem>(() =>
     getStoredUnitSystem(),
@@ -116,17 +131,14 @@ export function DashboardShell() {
           </p>
           {status && (
             <p className="text-sm text-[var(--color-moss)]" role="status">
-              {status}
+              {status.message}
             </p>
           )}
         </header>
         <DogWalkBanner />
         <DogProfileForm
-          dogs={dogs}
           selectedDog={null}
           unitSystem={unitSystem}
-          onSelect={selectDog}
-          onStartCreate={startCreateDog}
           onAdd={async (values) => {
             await addDog(values);
           }}
@@ -140,6 +152,7 @@ export function DashboardShell() {
           onStatus={setStatus}
           unitSystem={unitSystem}
           onUnitSystemChange={handleUnitSystemChange}
+          showClearAll={false}
         />
       </div>
     );
@@ -165,49 +178,26 @@ export function DashboardShell() {
               className="max-w-xs text-sm text-[var(--color-moss)] sm:text-right"
               role="status"
             >
-              {status}
+              {status.message}
             </p>
           )}
         </div>
 
         <DogWalkBanner />
 
-        <nav
-          aria-label="Dogs"
-          className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1"
-        >
-          {dogs.map((dog) => (
-            <button
-              key={dog.id}
-              type="button"
-              onClick={() => {
-                selectDog(dog.id);
-                setEditingWalk(null);
-              }}
-              className={`shrink-0 rounded-lg px-3 py-1.5 text-sm ${
-                !isCreatingDog && selectedDog?.id === dog.id
-                  ? "bg-[var(--color-moss)] text-white"
-                  : "bg-[var(--color-mist)] text-[var(--color-soil)] hover:bg-[var(--color-trail)]/30"
-              }`}
-            >
-              {dog.name}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => {
-              startCreateDog();
-              setEditingWalk(null);
-            }}
-            className={`shrink-0 rounded-lg px-3 py-1.5 text-sm ${
-              isCreatingDog
-                ? "bg-[var(--color-moss)] text-white"
-                : "text-[var(--color-moss)] underline-offset-2 hover:underline"
-            }`}
-          >
-            + New dog
-          </button>
-        </nav>
+        <DogSwitcher
+          dogs={dogs}
+          selectedId={selectedDog?.id ?? null}
+          isCreating={isCreatingDog}
+          onSelect={(id) => {
+            selectDog(id);
+            setEditingWalk(null);
+          }}
+          onStartCreate={() => {
+            startCreateDog();
+            setEditingWalk(null);
+          }}
+        />
       </header>
 
       {!isCreatingDog && (
@@ -279,17 +269,8 @@ export function DashboardShell() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <DogProfileForm
-          dogs={dogs}
           selectedDog={isCreatingDog ? null : selectedDog}
           unitSystem={unitSystem}
-          onSelect={(id) => {
-            selectDog(id);
-            setEditingWalk(null);
-          }}
-          onStartCreate={() => {
-            startCreateDog();
-            setEditingWalk(null);
-          }}
           onAdd={async (values) => {
             await addDog(values);
           }}
@@ -302,9 +283,7 @@ export function DashboardShell() {
         <HealthInsights
           dogId={selectedDogId}
           dogName={selectedDog?.name ?? null}
-          weightKg={selectedDog?.weight_kg ?? null}
           goal={goal}
-          stats={stats}
           unitSystem={unitSystem}
           onSave={saveGoal}
           onStatus={setStatus}
@@ -334,7 +313,7 @@ export function DashboardShell() {
               >
                 <div className="min-w-0">
                   <p className="font-medium text-[var(--color-soil)]">
-                    {walk.date}
+                    {formatWalkDate(walk.date)}
                   </p>
                   <p className="break-words text-[var(--color-bark)]/70">
                     {formatTimeOfDay(walk.start_time)
@@ -356,7 +335,18 @@ export function DashboardShell() {
                   </button>
                   <button
                     type="button"
+                    aria-label={`Delete walk on ${walk.date}`}
                     onClick={async () => {
+                      const confirmed = await ask(
+                        `Permanently delete the walk on ${walk.date}?`,
+                        {
+                          title: "Delete walk",
+                          kind: "warning",
+                          okLabel: "Delete walk",
+                          cancelLabel: "Cancel",
+                        },
+                      );
+                      if (!confirmed) return;
                       try {
                         await removeWalk(walk.id);
                         if (editingWalk?.id === walk.id) setEditingWalk(null);

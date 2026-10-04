@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
-  distancePerWeightUnitLabel,
   distanceUnitLabel,
   getStoredUnitSystem,
   kgToLbs,
@@ -9,7 +8,6 @@ import {
   milesToKm,
   setStoredUnitSystem,
   toDisplayDistance,
-  toDisplayDistancePerWeight,
   toDisplayWeight,
   toStorageDistance,
   toStorageWeight,
@@ -95,26 +93,5 @@ describe("toDisplayWeight / toStorageWeight", () => {
   it("converts for us", () => {
     expect(toDisplayWeight(1, "us")).toBeCloseTo(2.2046226, 5);
     expect(toStorageWeight(2.2046226, "us")).toBeCloseTo(1, 5);
-  });
-});
-
-describe("toDisplayDistancePerWeight", () => {
-  it("passes through unchanged for metric", () => {
-    expect(toDisplayDistancePerWeight(0.5, "metric")).toBe(0.5);
-  });
-
-  it("converts km/kg to mi/lb consistently with the distance and weight converters", () => {
-    const km = 10;
-    const kg = 5;
-    const kmPerKg = km / kg;
-    const expected = kmToMiles(km) / kgToLbs(kg);
-    expect(toDisplayDistancePerWeight(kmPerKg, "us")).toBeCloseTo(expected, 8);
-  });
-});
-
-describe("distancePerWeightUnitLabel", () => {
-  it("returns the correct label per system", () => {
-    expect(distancePerWeightUnitLabel("us")).toBe("mi/lb");
-    expect(distancePerWeightUnitLabel("metric")).toBe("km/kg");
   });
 });
