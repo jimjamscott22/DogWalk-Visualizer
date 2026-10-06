@@ -7,9 +7,12 @@ A lightweight, local-first desktop app for logging dog walks and visualizing con
 
 ---
 
-![Preview of UI](docs/img/dog-walk-tracker.png)
+<p align="center">
+  <img src="docs/img/dog-walk-screenshot.png" alt="Preview of UI" width="800" height="400">
+</p>
 
 ---
+
 
 ## Stack
 
