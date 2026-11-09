@@ -58,6 +58,7 @@ interface AppState {
   reopenCareTask: (id: number, dogId: number) => Promise<void>;
   removeCareTask: (id: number, dogId: number) => Promise<void>;
   clearAllData: () => Promise<void>;
+  restoreBackup: (json: string) => Promise<void>;
 }
 
 const emptyStats: DailyStats = {
@@ -231,6 +232,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       goal: null,
       stats: emptyStats,
     });
+    await get().refresh();
+  },
+
+  restoreBackup: async (json) => {
+    await db.restoreBackup(json);
+    set({ isCreatingDog: false });
     await get().refresh();
   },
 }));

@@ -1,5 +1,7 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
+mod data;
+
 const DB_URL: &str = "sqlite:dogwalk.db";
 
 /// Initial schema SQL (kept as a const so unit tests can assert safety invariants).
@@ -122,7 +124,12 @@ pub fn run() {
                 .add_migrations(DB_URL, migrations)
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![greet, db_url])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            db_url,
+            data::clear_all_data,
+            data::restore_backup
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

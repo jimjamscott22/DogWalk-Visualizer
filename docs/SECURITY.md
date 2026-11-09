@@ -17,14 +17,14 @@
 | CSP | Was `null` | Set restrictive CSP (self + ipc + inline styles for Tailwind) |
 | SQL | Frontend uses parameterized `$1…` binds | Confirmed in `src/lib/db.ts`; no string-concat queries |
 | Migrations | Static DDL only | Unit-tested for no `DROP` / `ATTACH` |
-| FS write | `fs:allow-write-text-file` + `fs:default` | Export uses save dialog; selected path is scoped for that write |
-| Dialog | `dialog:default` for save + confirm | Required for backup / clear-all |
-| Clear data | Destructive | Confirm dialog before DELETE |
+| File access | `fs:allow-read-text-file`, `fs:allow-write-text-file`, and `fs:deny-default` | Native open and save dialogs grant access to selected paths. |
+| Dialog | `dialog:default` | Supports export, restore, and confirmation before clearing |
+| Clear data | Destructive | Confirm before deleting in a single SQLite transaction |
+| Restore | Local JSON file | Validate records and references before writing. Check for an empty destination and import in a single SQLite transaction. |
 | DB location | `sqlite:dogwalk.db` in app data dir | Local only; not in repo |
 
 ## Residual risks
 
-- `fs:default` is broader than a single write path; acceptable for MVP because write is user-initiated via save dialog. Future: custom Rust command with explicit path allowlist.
 - Soft-delete for walks not implemented (hard delete).
 - Frontend can execute SQL via plugin; acceptable for trusted local UI. Hardening path: move CRUD behind Rust commands.
 
@@ -35,7 +35,8 @@ core:default
 sql:default
 sql:allow-execute
 dialog:default
-fs:default
+fs:deny-default
+fs:allow-read-text-file
 fs:allow-write-text-file
 ```
 

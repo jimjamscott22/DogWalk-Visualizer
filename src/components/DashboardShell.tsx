@@ -44,6 +44,7 @@ export function DashboardShell() {
     removeWalk,
     saveGoal,
     clearAllData,
+    restoreBackup,
     addCareTask,
     updateCareTask,
     completeCareTask,
@@ -149,6 +150,7 @@ export function DashboardShell() {
         />
         <SettingsPanel
           onClearAll={clearAllData}
+          onRestore={restoreBackup}
           onStatus={setStatus}
           unitSystem={unitSystem}
           onUnitSystemChange={handleUnitSystemChange}
@@ -370,6 +372,7 @@ export function DashboardShell() {
 
       <SettingsPanel
         onClearAll={clearAllData}
+        onRestore={restoreBackup}
         onStatus={setStatus}
         unitSystem={unitSystem}
         onUnitSystemChange={handleUnitSystemChange}

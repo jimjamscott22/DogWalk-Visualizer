@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import Database from "@tauri-apps/plugin-sql";
 import type {
   CareTask,
@@ -88,15 +89,9 @@ export async function listWalks(dogId?: number): Promise<Walk[]> {
 
 export async function createWalk(input: CreateWalkInput): Promise<void> {
   const db = await getDb();
-  // One walk per dog per day (UNIQUE). Upsert so Quick Add updates today's entry.
   await db.execute(
     `INSERT INTO walks (dog_id, date, start_time, duration_minutes, distance_km, notes)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     ON CONFLICT(dog_id, date) DO UPDATE SET
-       start_time = excluded.start_time,
-       duration_minutes = excluded.duration_minutes,
-       distance_km = excluded.distance_km,
-       notes = excluded.notes`,
+     VALUES ($1, $2, $3, $4, $5, $6)`,
     [
       input.dog_id,
       input.date,
@@ -256,11 +251,13 @@ export async function exportBackup(): Promise<BackupPayload> {
 }
 
 export async function clearAllData(): Promise<void> {
-  const db = await getDb();
-  await db.execute("DELETE FROM care_tasks");
-  await db.execute("DELETE FROM walks");
-  await db.execute("DELETE FROM goals");
-  await db.execute("DELETE FROM dogs");
+  await getDb();
+  await invoke("clear_all_data");
+}
+
+export async function restoreBackup(json: string): Promise<void> {
+  await getDb();
+  await invoke("restore_backup", { json });
 }
 
 /** Smoke-test helper: ensure DB opens and schema is queryable. */

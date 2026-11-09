@@ -54,6 +54,7 @@ function mockStore(overrides: Record<string, unknown> = {}) {
     removeWalk,
     saveGoal: noop,
     clearAllData: noop,
+    restoreBackup: noop,
     addCareTask: noop,
     updateCareTask: noop,
     completeCareTask: noop,
