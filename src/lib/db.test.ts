@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as db from "./db";
 
 const sql = vi.hoisted(() => ({ load: vi.fn(), select: vi.fn(), execute: vi.fn() }));
+const invoke = vi.hoisted(() => vi.fn());
+vi.mock("@tauri-apps/api/core", () => ({ invoke }));
 vi.mock("@tauri-apps/plugin-sql", () => ({ default: { load: sql.load } }));
 
 const rustSource = readFileSync(new URL("../../src-tauri/src/lib.rs", import.meta.url), "utf8");
@@ -34,6 +36,27 @@ beforeEach(() => {
   });
 });
 afterEach(() => { sqlite.close(); vi.useRealTimers(); });
+
+it("preserves the original walk when the same dog and date are logged again", async () => {
+  const walk = {
+    dog_id: 1, date: "2026-09-30", start_time: "09:00",
+    duration_minutes: 45, distance_km: 3.2, notes: "Original",
+  };
+  await db.createWalk(walk);
+  await expect(db.createWalk({
+    dog_id: 1, date: walk.date, duration_minutes: 30, distance_km: 1.6,
+  })).rejects.toThrow("UNIQUE constraint failed");
+  expect(await db.listWalks(1)).toEqual([expect.objectContaining(walk)]);
+});
+
+it("routes clear and restore through the native commands", async () => {
+  await db.clearAllData();
+  await db.restoreBackup("backup contents");
+  expect(invoke.mock.calls).toEqual([
+    ["clear_all_data"],
+    ["restore_backup", { json: "backup contents" }],
+  ]);
+});
 
 describe("care task SQLite operations", () => {
   it("creates, lists by dog and due date, edits, and deletes with bound values", async () => {
@@ -92,16 +115,10 @@ describe("care task SQLite operations", () => {
     await expect(db.updateCareTask({ ...task, dog_id: 2 })).rejects.toThrow();
   });
 
-  it("includes every dog's tasks in backup and clears child rows before dogs", async () => {
+  it("includes every dog's tasks in backup", async () => {
     await db.createCareTask({ dog_id: 1, name: "Bath", due_date: "2026-09-30" });
     await db.createCareTask({ dog_id: 2, name: "Teeth", due_date: "2026-09-30" });
     expect((await db.exportBackup()).care_tasks).toHaveLength(2);
-    await db.clearAllData();
-    expect(await db.listCareTasks()).toEqual([]);
-    expect(await db.listDogs()).toEqual([]);
-    expect(sql.execute.mock.calls.slice(-4).map(([query]) => query)).toEqual([
-      "DELETE FROM care_tasks", "DELETE FROM walks", "DELETE FROM goals", "DELETE FROM dogs",
-    ]);
   });
 
   it("propagates a database failure without claiming success", async () => {

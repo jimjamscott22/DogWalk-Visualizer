@@ -64,6 +64,9 @@ export function WalkForm({
   const notesRef = useRef<HTMLTextAreaElement | null>(null);
   const notesRegistration = register("notes");
   const notes = watch("notes");
+  const initialDistance = editing
+    ? toDisplayDistance(editing.distance_km, unitSystem).toFixed(1)
+    : null;
 
   const resizeNotes = () => {
     const textarea = notesRef.current;
@@ -86,7 +89,7 @@ export function WalkForm({
     return () => window.removeEventListener("resize", resizeNotes);
   }, []);
   useEffect(() => {
-    if (editing) {
+    if (editing && initialDistance !== null) {
       reset({
         date: editing.date,
         start_time: editing.start_time ?? "",
@@ -94,7 +97,7 @@ export function WalkForm({
           editing.duration_minutes != null
             ? String(editing.duration_minutes)
             : "",
-        distance_km: toDisplayDistance(editing.distance_km, unitSystem).toFixed(1),
+        distance_km: initialDistance,
         notes: editing.notes ?? "",
       });
     } else {
@@ -106,7 +109,7 @@ export function WalkForm({
         notes: "",
       });
     }
-  }, [editing, unitSystem, reset]);
+  }, [editing, initialDistance, unitSystem, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
     if (dogId == null) {
@@ -114,7 +117,10 @@ export function WalkForm({
       return;
     }
 
-    const distance_km = toStorageDistance(Number(values.distance_km), unitSystem);
+    const distance = Number(values.distance_km);
+    const distance_km = editing && distance === Number(initialDistance)
+      ? editing.distance_km
+      : toStorageDistance(distance, unitSystem);
     const start_time = values.start_time.trim() || undefined;
     const durationRaw = values.duration_minutes.trim();
     const duration_minutes = durationRaw
@@ -154,11 +160,10 @@ export function WalkForm({
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      const isDuplicateDate =
-        /UNIQUE constraint failed/i.test(message) && /walks/i.test(message);
+      const isDuplicateDate = /UNIQUE constraint failed: walks\.dog_id, walks\.date/i.test(message);
       onStatus(
         isDuplicateDate
-          ? "This dog already has a walk logged on that date"
+          ? "This dog already has a walk on that date. Edit the existing entry in walk history."
           : `Could not save walk: ${message}`,
       );
     }
@@ -235,7 +240,7 @@ export function WalkForm({
         Distance ({distanceUnitLabel(unitSystem)})
         <input
           type="number"
-          min={0.1}
+          min={initialDistance === "0.0" ? 0 : 0.1}
           step={0.1}
           className="mt-1 w-full rounded-lg border border-[var(--color-trail)]/50 bg-[var(--color-input)] px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--color-leaf)]"
           {...register("distance_km", {
@@ -243,6 +248,7 @@ export function WalkForm({
             validate: (v) => {
               const n = Number(v);
               return (
+                (initialDistance !== null && n === Number(initialDistance)) ||
                 (Number.isFinite(n) && n > 0) ||
                 "Distance must be greater than 0"
               );

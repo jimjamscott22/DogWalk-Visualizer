@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { ask, save } from "@tauri-apps/plugin-dialog";
-import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { ask, open, save } from "@tauri-apps/plugin-dialog";
+import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { exportBackup } from "../lib/db";
 import { todayIso } from "../lib/stats";
 import {
@@ -13,6 +13,7 @@ import type { UnitSystem } from "../lib/units";
 
 interface SettingsPanelProps {
   onClearAll: () => Promise<void>;
+  onRestore: (json: string) => Promise<void>;
   onStatus: (message: string) => void;
   unitSystem?: UnitSystem;
   onUnitSystemChange?: (system: UnitSystem) => void;
@@ -21,6 +22,7 @@ interface SettingsPanelProps {
 
 export function SettingsPanel({
   onClearAll,
+  onRestore,
   onStatus,
   unitSystem = "us",
   onUnitSystemChange = () => {},
@@ -56,21 +58,21 @@ export function SettingsPanel({
   };
 
   const handleClear = async () => {
-    const confirmed = await ask(
-      "This permanently deletes all dogs, walks, goals, and care tasks on this device. Continue?",
-      {
-        title: "Clear all data",
-        kind: "warning",
-        okLabel: "Delete everything",
-        cancelLabel: "Cancel",
-      },
-    );
-    if (!confirmed) {
-      onStatus("Clear cancelled");
-      return;
-    }
     setBusy(true);
     try {
+      const confirmed = await ask(
+        "This permanently deletes all dogs, walks, goals, and care tasks on this device. Continue?",
+        {
+          title: "Clear all data",
+          kind: "warning",
+          okLabel: "Delete everything",
+          cancelLabel: "Cancel",
+        },
+      );
+      if (!confirmed) {
+        onStatus("Clear cancelled");
+        return;
+      }
       await onClearAll();
       onStatus("All local data cleared");
     } catch (err) {
@@ -81,18 +83,32 @@ export function SettingsPanel({
     }
   };
 
+  const handleRestore = async () => {
+    setBusy(true);
+    try {
+      const path = await open({
+        multiple: false,
+        filters: [{ name: "JSON", extensions: ["json"] }],
+      });
+      if (path === null) return;
+      await onRestore(await readTextFile(path));
+      onStatus("Backup restored");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      onStatus(`Restore failed: ${message}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <section className="rounded-2xl bg-[var(--color-panel)] p-4 shadow-sm ring-1 ring-[var(--color-trail)]/40 sm:p-5">
       <h2 className="text-lg font-medium text-[var(--color-soil)]">Settings</h2>
       <p className="mt-1 text-sm text-[var(--color-bark)]/70">
-        Data stays on this machine. Export a JSON backup anytime.
+        Data stays on this machine. You can export a backup anytime and restore it into an empty database.
       </p>
 
-      <div
-        className={`mt-4 grid gap-2 grid-cols-2 ${
-          showClearAll ? "min-[640px]:grid-cols-4" : "min-[640px]:grid-cols-3"
-        }`}
-      >
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
         <button
           type="button"
           disabled={busy}
@@ -116,6 +132,14 @@ export function SettingsPanel({
           className="rounded-lg bg-[var(--color-moss)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[var(--color-leaf)] disabled:opacity-60"
         >
           Backup to JSON
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void handleRestore()}
+          className="rounded-lg bg-[var(--color-mist)] px-4 py-2.5 text-sm font-medium text-[var(--color-soil)] hover:bg-[var(--color-trail)]/30 disabled:opacity-60"
+        >
+          Restore from JSON
         </button>
         {showClearAll && (
           <button

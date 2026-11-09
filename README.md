@@ -91,7 +91,15 @@ On first launch, macOS may block the app (unsigned build). Open **System Setting
    - **macOS:** `~/Library/Application Support/com.dogwalk.tracker/`
    - **Windows:** `%APPDATA%\com.dogwalk.tracker\`
 
-Use **Settings → Export backup** before uninstalling or clearing data.
+Use **Settings → Backup to JSON** before uninstalling or clearing data.
+
+### Back up and restore
+
+1. Open **Settings → Backup to JSON** and save the file somewhere you can find it again.
+2. On a fresh installation, open **Settings → Restore from JSON** from the onboarding screen and select the backup.
+3. Confirm that your profiles, walk history, goals, and care tasks appear in the dashboard.
+
+Restore requires an empty database. To reuse an existing installation, export and verify a backup before using **Clear all data**. Backup files contain your local records, including profile photos, so keep them somewhere private.
 
 ### Uninstall
 
@@ -110,7 +118,7 @@ You need to build on the OS you plan to run on (cross-compilation is not configu
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) 18+
+- [Node.js](https://nodejs.org/) 22 (the CI baseline)
 - [Rust](https://rustup.rs) (stable)
 - [Tauri platform dependencies](https://v2.tauri.app/start/prerequisites/) for your OS
 
@@ -167,6 +175,7 @@ CHANGELOG.md          Version history
 | [`docs/HANDOFF.md`](docs/HANDOFF.md) | Resume / current status |
 | [`docs/RELEASE_NOTES.md`](docs/RELEASE_NOTES.md) | v1.0 release notes |
 | [`docs/SECURITY.md`](docs/SECURITY.md) | Permissions & audit |
+| [`docs/RELIABILITY_PLAN.md`](docs/RELIABILITY_PLAN.md) | Walk logging, atomic clear, and restore implementation plan |
 | [`docs/spec.md`](docs/spec.md) | Product spec |
 | [`CHANGELOG.md`](CHANGELOG.md) | Changelog |
 
@@ -176,7 +185,7 @@ CHANGELOG.md          Version history
 - Walk CRUD with validation
 - Weekly progress, streak, goals, 14-day chart
 - Per-dog care tasks with due dates, optional repeats, and due/overdue reminders inside the app
-- Dark mode, JSON backup, clear-all-data
+- Dark mode, JSON backup and restore, clear-all-data
 - Local SQLite only (no cloud)
 
 Use **Care tasks** below the weekly stats to schedule a bath, nail trim, tooth brushing, or a custom chore. Choose a due date and optionally enter a repeat interval in days. **Mark done** schedules a repeating task from the day you complete it; one-time tasks move into the collapsed **Done** list and can be reopened. The app keeps the most recent completion date, and JSON backups include care tasks for every dog.

@@ -400,6 +400,7 @@ describe("SettingsPanel", () => {
     render(
       <SettingsPanel
         onClearAll={vi.fn()}
+        onRestore={vi.fn()}
         onStatus={vi.fn()}
         unitSystem="us"
         onUnitSystemChange={onUnitSystemChange}
@@ -411,12 +412,13 @@ describe("SettingsPanel", () => {
   });
 
   it("shows Clear all data by default and hides it when showClearAll is false", () => {
-    const props = { onClearAll: vi.fn(), onStatus: vi.fn() };
+    const props = { onClearAll: vi.fn(), onRestore: vi.fn(), onStatus: vi.fn() };
     const { rerender } = render(<SettingsPanel {...props} />);
     expect(screen.getByRole("button", { name: /clear all data/i })).toBeInTheDocument();
 
     rerender(<SettingsPanel {...props} showClearAll={false} />);
     expect(screen.queryByRole("button", { name: /clear all data/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /backup to json/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /restore from json/i })).toBeInTheDocument();
   });
 });
