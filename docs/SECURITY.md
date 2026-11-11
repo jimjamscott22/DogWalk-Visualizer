@@ -13,7 +13,7 @@
 | Area | Finding | Action |
 | --- | --- | --- |
 | Network | No HTTP/HTTPS allowlist permissions | Kept — no `http:` / remote URL permissions in capabilities |
-| Opener plugin | Scaffolded but unused | **Removed** plugin + `opener:default` |
+| Opener plugin | Pet care resource links (2026-11-09) | `opener:allow-open-url` scoped to three exact HTTPS URLs; no default, file, or reveal permissions. Automatic link interception disabled. |
 | CSP | Was `null` | Set restrictive CSP (self + ipc + inline styles for Tailwind) |
 | SQL | Frontend uses parameterized `$1…` binds | Confirmed in `src/lib/db.ts`; no string-concat queries |
 | Migrations | Static DDL only | Unit-tested for no `DROP` / `ATTACH` |
@@ -40,4 +40,15 @@ fs:allow-read-text-file
 fs:allow-write-text-file
 ```
 
-No `shell`, `http`, or remote asset permissions.
+No `shell`, `http`, or remote asset permissions. `opener:allow-open-url` additionally
+permits only these exact resource URLs in the system browser:
+
+- https://www.aspca.org/pet-care/dog-care/general-dog-care
+- https://www.aspca.org/pet-care/cat-care/general-cat-care
+- https://www.pdsa.org.uk/pet-help-and-advice/looking-after-your-pet/kittens-cats/exercise-for-your-cat
+
+Pet care tips are bundled and available offline. Opening a resource is an explicit
+user action; no pet records are included in the URL or sent to the website. The
+external browser uses its own network connection and website privacy policies.
+The WebView CSP is unchanged. Adding or changing resources requires reviewing both
+`src/lib/petCareTips.ts` and the capability URL allowlist.

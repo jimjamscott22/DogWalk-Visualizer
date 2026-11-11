@@ -17,6 +17,7 @@ import { DogWalkBanner } from "./DogWalkBanner";
 import { DogProfileForm } from "./DogProfileForm";
 import { DogSwitcher } from "./DogSwitcher";
 import { HealthInsights } from "./HealthInsights";
+import { PetCareTipsPanel } from "./PetCareTipsPanel";
 import { SettingsPanel } from "./SettingsPanel";
 import { StatsPanel } from "./StatsPanel";
 import { WalkChart } from "./WalkChart";
@@ -369,6 +370,8 @@ export function DashboardShell() {
           </ul>
         )}
       </section>
+
+      <PetCareTipsPanel />
 
       <SettingsPanel
         onClearAll={clearAllData}
